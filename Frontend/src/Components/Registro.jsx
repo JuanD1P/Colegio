@@ -10,11 +10,11 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   fetchSignInMethodsForEmail,
-  getAdditionalUserInfo
 } from "firebase/auth";
 import { auth, db } from "../firebase/client";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import ToastStack from "./ToastStack";
+import axios from "axios";
 
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: 'select_account' });
@@ -78,11 +78,25 @@ export default function Registro() {
         nombre: values.nombre_completo || dataExtra.displayName || "",
         email: values.email || dataExtra.email || "",
         rol: "USER",
-        activo: true,
+        estado: "pendiente",         // ⬅️ importante para el flujo B
         creadoEn: serverTimestamp(),
         ...dataExtra,
       });
     }
+  };
+
+  const afterRegisterPending = async () => {
+    try {
+      // llama a /auth/session para crear (si no existe) el doc "pendiente" en backend
+      const token = await auth.currentUser.getIdToken(true);
+      await axios.post("http://localhost:3000/auth/session", { idToken: token }).catch(()=>{});
+    } catch {}
+    // cerrar sesión y redirigir a login
+    try { await auth.signOut(); } catch {}
+    showToast("Cuenta creada. Está pendiente de aprobación del administrador.", {
+      variant: 'success', title: 'Registro enviado', icon: '✅'
+    });
+    navigate("/login");
   };
 
   const handleSubmit = async (e) => {
@@ -96,9 +110,8 @@ export default function Registro() {
       setIsSubmitting(true);
       const cred = await createUserWithEmailAndPassword(auth, values.email, values.password);
       await updateProfile(cred.user, { displayName: values.nombre_completo });
-      await crearDocumentoUsuarioSiNoExiste(cred.user.uid);
-      showToast('Registro exitoso', { variant: 'success', title: 'Listo', icon: '✅' });
-      // navigate('/userlogin');
+      await crearDocumentoUsuarioSiNoExiste(cred.user.uid, { provider: "password" });
+      await afterRegisterPending();
     } catch (error) {
       const msg = firebaseErrorToMessage(error);
       showToast(msg, { variant: 'error', title: 'No se pudo registrar' });
@@ -111,19 +124,18 @@ export default function Registro() {
     try {
       setIsSubmitting(true);
       const result = await signInWithPopup(auth, provider);
-      const info = getAdditionalUserInfo(result);
       const user = result.user;
+
+      // Si ya existe, no lo sobreescribimos; si no, lo creamos "pendiente"
       await crearDocumentoUsuarioSiNoExiste(user.uid, {
         displayName: user.displayName || "",
         email: user.email || "",
         provider: "google",
       });
-      if (info?.isNewUser) {
-        showToast('Registro exitoso con Google', { variant: 'success', title: 'Listo', icon: '✅' });
-      } else {
-        showToast('Correo ya registrado', { variant: 'warning', title: 'Aviso' });
-      }
+
+      await afterRegisterPending();
     } catch (error) {
+      // conflicto de proveedor
       if (error?.code === 'auth/account-exists-with-different-credential') {
         const email = error?.customData?.email;
         let msg = 'Este correo ya está registrado.';
@@ -259,7 +271,7 @@ export default function Registro() {
 
           <p className="login-footer">
             ¿Ya tienes una Cuenta?{" "}
-            <span onClick={() => navigate("/userlogin")}>Inicia Sesión</span>
+            <span onClick={() => navigate("/login")}>Inicia Sesión</span>
           </p>
         </div>
       </section>

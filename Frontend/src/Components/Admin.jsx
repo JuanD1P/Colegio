@@ -1,104 +1,116 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+// src/Components/Admin.jsx
+import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import "@sweetalert2/themes/borderless/borderless.css";
+import api from "../api/axios";
 import logo from "../ImagenesP/ImagenesLogin/ADMINLOGO.png";
 import "./DOCSS/Admin.css";
 
-// Axios con Bearer automático
-const api = axios.create({
-  baseURL: "http://localhost:3000",
-  withCredentials: true,
-});
-api.interceptors.request.use((config) => {
-  const t = localStorage.getItem("auth-token");
-  if (t) config.headers.Authorization = `Bearer ${t}`;
-  return config;
-});
+const ROLES = ["ESTUDIANTE", "PROFESOR", "ADMIN", "USER"];
 
 export default function Admin() {
-  const navigate = useNavigate();
   const [usuarios, setUsuarios] = useState([]);
-  const [uLoading, setULoading] = useState(false);
-  const [uErr, setUErr] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+  const [tab, setTab] = useState("pendientes"); // pendientes | activos | rechazados
+  const [q, setQ] = useState("");
 
-  useEffect(() => { obtenerUsuarios(); }, []);
+  useEffect(() => { fetchUsuarios(); }, []);
 
-  const obtenerUsuarios = async () => {
+  async function fetchUsuarios() {
     try {
-      setULoading(true);
-      setUErr("");
+      setLoading(true);
+      setErr("");
       const { data } = await api.get("/api/usuarios");
       setUsuarios(Array.isArray(data) ? data : []);
-    } catch (error) {
-      setUErr(error?.response?.data?.error || "No fue posible cargar los usuarios");
+    } catch (e) {
+      setErr(e?.response?.data?.error || "No fue posible cargar usuarios");
     } finally {
-      setULoading(false);
+      setLoading(false);
     }
-  };
+  }
 
-  const eliminarUsuario = async (id) => {
-    const result = await Swal.fire({
-      title: "¿Eliminar usuario?",
-      text: "Esto eliminará el documento y la cuenta de Auth.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-      reverseButtons: true,
-      showLoaderOnConfirm: true,
-      buttonsStyling: false,
-      customClass: {
-        popup: "sw-popup",
-        title: "sw-title",
-        htmlContainer: "sw-text",
-        actions: "sw-actions",
-        confirmButton: "sw-confirm",
-        cancelButton: "sw-cancel",
-      },
-      preConfirm: async () => {
-        try {
-          await api.delete(`/api/usuarios/${id}`);
-        } catch (error) {
-          Swal.showValidationMessage(
-            error?.response?.data?.error || "No fue posible eliminar el usuario"
-          );
-          return false;
-        }
-      },
-      allowOutsideClick: () => !Swal.isLoading(),
-    });
-
-    if (result.isConfirmed) {
-      await obtenerUsuarios();
+  async function aprobarUsuario(id, rol) {
+    try {
+      await api.put(`/api/usuarios/${id}/aprobar`, { rol });
+      await fetchUsuarios();
       Swal.fire({
         icon: "success",
-        title: "Usuario eliminado",
-        timer: 1200,
+        title: `Aprobado como ${rol}`,
+        timer: 900,
         showConfirmButton: false,
-        customClass: { popup: "sw-popup" },
         buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
+      });
+    } catch (e) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo aprobar",
+        text: e?.response?.data?.error || "Intenta de nuevo",
+        buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
       });
     }
-  };
+  }
 
-  const cambiarRol = async (id, rolActual, nuevoRol) => {
-    if (rolActual === nuevoRol) return;
+  async function rechazarUsuario(id) {
+    try {
+      await api.put(`/api/usuarios/${id}/rechazar`);
+      await fetchUsuarios();
+      Swal.fire({
+        icon: "success",
+        title: "Usuario rechazado",
+        timer: 900,
+        showConfirmButton: false,
+        buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
+      });
+    } catch (e) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo rechazar",
+        text: e?.response?.data?.error || "Intenta de nuevo",
+        buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
+      });
+    }
+  }
+
+  async function cambiarRol(id, nuevoRol) {
+    try {
+      await api.put(`/api/usuarios/${id}/rol`, { rol: nuevoRol });
+      await fetchUsuarios();
+      Swal.fire({
+        icon: "success",
+        title: "Rol actualizado",
+        timer: 900,
+        showConfirmButton: false,
+        buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
+      });
+    } catch (e) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo cambiar el rol",
+        text: e?.response?.data?.error || "Intenta de nuevo",
+        buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
+      });
+    }
+  }
+
+  async function eliminarUsuario(id) {
     const { isConfirmed } = await Swal.fire({
-      title: "Cambiar rol",
-      text: `¿Cambiar rol a ${nuevoRol}?`,
-      icon: "question",
+      title: "¿Eliminar usuario?",
+      text: "Se eliminará su documento y cuenta de Auth.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sí, cambiar",
+      confirmButtonText: "Eliminar",
       cancelButtonText: "Cancelar",
       reverseButtons: true,
       buttonsStyling: false,
       customClass: {
         popup: "sw-popup",
-        title: "sw-title",
-        htmlContainer: "sw-text",
-        actions: "sw-actions",
         confirmButton: "sw-confirm",
         cancelButton: "sw-cancel",
       },
@@ -106,26 +118,43 @@ export default function Admin() {
     if (!isConfirmed) return;
 
     try {
-      await api.put(`/api/usuarios/${id}/rol`, { rol: nuevoRol });
-      await obtenerUsuarios();
+      await api.delete(`/api/usuarios/${id}`);
+      await fetchUsuarios();
       Swal.fire({
         icon: "success",
-        title: "Rol actualizado",
-        timer: 1000,
+        title: "Eliminado",
+        timer: 900,
         showConfirmButton: false,
-        customClass: { popup: "sw-popup" },
         buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
       });
-    } catch (error) {
+    } catch (e) {
       Swal.fire({
         icon: "error",
-        title: "No fue posible cambiar el rol",
-        text: error?.response?.data?.error || "Intenta de nuevo",
-        customClass: { popup: "sw-popup" },
+        title: "No se pudo eliminar",
+        text: e?.response?.data?.error || "Intenta de nuevo",
         buttonsStyling: false,
+        customClass: { popup: "sw-popup" },
       });
     }
-  };
+  }
+
+  const list = useMemo(() => {
+    const byTab = usuarios.filter((u) => {
+      if (tab === "pendientes") return (u.estado || "pendiente") === "pendiente";
+      if (tab === "rechazados") return u.estado === "rechazada";
+      return (u.estado || "activo") === "activo";
+    });
+    const s = q.trim().toLowerCase();
+    if (!s) return byTab;
+    return byTab.filter((u) =>
+      [u.id, u.nombre, u.nombre_completo, u.email, u.rol]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(s)
+    );
+  }, [usuarios, tab, q]);
 
   return (
     <div className="admin-page">
@@ -141,7 +170,8 @@ export default function Admin() {
         </div>
 
         <div className="admin-header-actions">
-          <button onClick={() => navigate("/GraficasA")} className="btn accent">
+          <button onClick={fetchUsuarios} className="btn">Actualizar</button>
+          <button onClick={() => (window.location.href = "/GraficasA")} className="btn accent">
             DATOS PRODUCTOS
           </button>
         </div>
@@ -150,13 +180,39 @@ export default function Admin() {
       <main className="admin-content">
         <section className="card glass-strong">
           <div className="card-head">
-            <h2>Usuarios</h2>
-            <div className="chip">
-              {uLoading ? "Cargando..." : `${usuarios.length} usuarios`}
+            <div className="tabs">
+              <button
+                className={`tab ${tab === "pendientes" ? "active" : ""}`}
+                onClick={() => setTab("pendientes")}
+              >
+                Pendientes
+              </button>
+              <button
+                className={`tab ${tab === "activos" ? "active" : ""}`}
+                onClick={() => setTab("activos")}
+              >
+                Activos
+              </button>
+              <button
+                className={`tab ${tab === "rechazados" ? "active" : ""}`}
+                onClick={() => setTab("rechazados")}
+              >
+                Rechazados
+              </button>
+            </div>
+
+            <div className="tools">
+              <input
+                className="search"
+                placeholder="Buscar por email/nombre/rol…"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              <div className="chip">{loading ? "Cargando…" : `${list.length} usuarios`}</div>
             </div>
           </div>
 
-          {uErr && <div className="alert error">{uErr}</div>}
+          {err && <div className="alert error">{err}</div>}
 
           <div className="table-scroll">
             <table className="admin-table">
@@ -166,49 +222,58 @@ export default function Admin() {
                   <th>Nombre</th>
                   <th>Email</th>
                   <th>Rol</th>
-                  <th style={{ minWidth: 120 }}>Acciones</th>
+                  <th>Estado</th>
+                  <th style={{ minWidth: 280 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {uLoading ? (
-                  <tr>
-                    <td colSpan={5}>
-                      <div className="skeleton-row" />
-                      <div className="skeleton-row" />
-                      <div className="skeleton-row" />
-                    </td>
-                  </tr>
-                ) : usuarios.length ? (
-                  usuarios.map((u) => (
+                {loading ? (
+                  <tr><td colSpan={6}><div className="skeleton-row" /></td></tr>
+                ) : list.length ? (
+                  list.map((u) => (
                     <tr key={u.id}>
-                      <td>{u.id}</td>
+                      <td className="mono">{u.id}</td>
                       <td className="cell-strong">{u.nombre_completo || u.nombre || "-"}</td>
                       <td>{u.email}</td>
+                      <td>{u.rol || "-"}</td>
+                      <td>{u.estado || "-"}</td>
                       <td>
-                        <select
-                          className="admin-role-select"
-                          value={u.rol || "USER"}
-                          onChange={(e) => cambiarRol(u.id, u.rol, e.target.value)}
-                        >
-                          <option value="USER">USER</option>
-                          <option value="ADMIN">ADMIN</option>
-                        </select>
-                      </td>
-                      <td>
-                        <button
-                          className="btn danger"
-                          onClick={() => eliminarUsuario(u.id)}
-                          title="Eliminar usuario"
-                        >
-                          <span className="x">✖</span> Eliminar
-                        </button>
+                        {tab === "pendientes" || tab === "rechazados" ? (
+                          <>
+                            <div className="btn-group">
+                              <button className="btn" onClick={() => aprobarUsuario(u.id, "ESTUDIANTE")}>
+                                Aprobar (ESTUDIANTE)
+                              </button>
+                              <button className="btn" onClick={() => aprobarUsuario(u.id, "PROFESOR")}>
+                                Aprobar (PROFESOR)
+                              </button>
+                              <button className="btn accent" onClick={() => aprobarUsuario(u.id, "ADMIN")}>
+                                Aprobar (ADMIN)
+                              </button>
+                            </div>
+                            <button className="btn danger" style={{ marginLeft: 8 }} onClick={() => rechazarUsuario(u.id)}>
+                              Rechazar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <select
+                              className="admin-role-select"
+                              value={u.rol || "USER"}
+                              onChange={(e) => cambiarRol(u.id, e.target.value)}
+                            >
+                              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                            <button className="btn danger" style={{ marginLeft: 8 }} onClick={() => eliminarUsuario(u.id)}>
+                              Eliminar
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={5} className="cell-empty">No hay usuarios</td>
-                  </tr>
+                  <tr><td colSpan={6} className="cell-empty">Sin resultados</td></tr>
                 )}
               </tbody>
             </table>

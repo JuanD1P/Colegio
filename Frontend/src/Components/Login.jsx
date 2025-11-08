@@ -10,7 +10,6 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
-  fetchSignInMethodsForEmail,
   getAdditionalUserInfo,
 } from "firebase/auth";
 import { auth } from "../firebase/client";
@@ -30,16 +29,17 @@ export default function Login() {
 
   axios.defaults.withCredentials = true;
 
+  // Al cargar, limpiamos cualquier estado previo
   useEffect(() => {
     localStorage.removeItem("auth-token");
     localStorage.removeItem("user-role");
   }, []);
 
-
+  // Animación
   useEffect(() => {
     const el = formRef.current;
     if (!el) return;
-    void el.offsetWidth; // fuerza reflow
+    void el.offsetWidth;
     el.classList.add("reveal-in");
   }, []);
 
@@ -64,6 +64,11 @@ export default function Login() {
     return err?.message || "Ocurrió un error";
   };
 
+  const goHomeByRole = (rol) => {
+    if (rol === "ADMIN") navigate("/Admin", { replace: true });
+    else navigate("/Inicio", { replace: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!values.email || !values.password) {
@@ -80,26 +85,47 @@ export default function Login() {
         values.email,
         values.password
       );
-      const idToken = await user.getIdToken();
+      const idToken = await user.getIdToken(true);
+      console.log("CALL /auth/session (email/pass)", { email: values.email });
+
+      const res = await axios.post("http://localhost:3000/auth/session", {
+        idToken,
+      });
+
+      // activo
+      const data = res.data;
       localStorage.setItem("auth-token", idToken);
-
-      const { data } = await axios.post(
-        "http://localhost:3000/auth/session",
-        { idToken }
-      );
-      if (!data?.ok) throw new Error(data?.error || "Sesión inválida");
-
       localStorage.setItem("user-role", data.rol);
       showToast("Sesión iniciada", {
         variant: "success",
         title: "Bienvenido",
         icon: "✅",
       });
-
-      if (data.rol === "ADMIN") navigate("/Admin");
-      else navigate("/Inicio");
-      window.location.reload();
+      goHomeByRole(data.rol);
     } catch (err) {
+      const apiMsg = err?.response?.data?.error;
+      const status = err?.response?.status;
+
+      if (apiMsg?.toLowerCase?.().includes("pendiente")) {
+        // limpiar y cerrar sesión
+        localStorage.removeItem("auth-token");
+        localStorage.removeItem("user-role");
+        try { await auth.signOut(); } catch {}
+        showToast(
+          "Tu cuenta está pendiente de aprobación del administrador.",
+          { variant: "warning", title: "Esperando aprobación" }
+        );
+        return;
+      }
+
+      if (status === 401) {
+        showToast("Token inválido. Intenta iniciar sesión de nuevo.", {
+          variant: "error", title: "Autenticación"
+        });
+        try { await auth.signOut(); } catch {}
+        return;
+      }
+
       const msg = firebaseErrorToMessage(err);
       showToast(msg, { variant: "error", title: "No se pudo iniciar sesión" });
     } finally {
@@ -113,14 +139,16 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const info = getAdditionalUserInfo(result);
       const user = result.user;
-      const idToken = await user.getIdToken();
-      localStorage.setItem("auth-token", idToken);
+      const idToken = await user.getIdToken(true);
+      console.log("CALL /auth/session (google)", { email: user.email });
 
-      const { data } = await axios.post(
-        "http://localhost:3000/auth/session",
-        { idToken }
-      );
-      if (!data?.ok) throw new Error(data?.error || "Sesión inválida");
+      const res = await axios.post("http://localhost:3000/auth/session", {
+        idToken,
+      });
+
+      // activo
+      const data = res.data;
+      localStorage.setItem("auth-token", idToken);
       localStorage.setItem("user-role", data.rol);
 
       if (info?.isNewUser) {
@@ -136,11 +164,32 @@ export default function Login() {
           icon: "✅",
         });
       }
-
-      if (data.rol === "ADMIN") navigate("/Admin");
-      else navigate("/Inicio");
-      window.location.reload();
+      goHomeByRole(data.rol);
     } catch (error) {
+      const apiMsg = error?.response?.data?.error;
+      const status = error?.response?.status;
+
+      if (apiMsg?.toLowerCase?.().includes("pendiente")) {
+        // limpiar y cerrar sesión
+        localStorage.removeItem("auth-token");
+        localStorage.removeItem("user-role");
+        try { await auth.signOut(); } catch {}
+        showToast(
+          "Cuenta creada. Está pendiente de aprobación del administrador.",
+          { variant: "success", title: "Registro enviado", icon: "✅" }
+        );
+        navigate("/userlogin", { replace: true });
+        return;
+      }
+
+      if (status === 401) {
+        showToast("Token inválido. Intenta de nuevo.", {
+          variant: "error", title: "Autenticación"
+        });
+        try { await auth.signOut(); } catch {}
+        return;
+      }
+
       const msg = firebaseErrorToMessage(error);
       showToast(msg, { variant: "error", title: "No se pudo continuar" });
     } finally {
@@ -194,7 +243,7 @@ export default function Login() {
           <h2 className="login-title">Bienvenido de nuevo</h2>
           <p className="login-sub">Ingresa tus datos</p>
 
-          <form
+        <form
             ref={formRef}
             onSubmit={handleSubmit}
             className="login-form"

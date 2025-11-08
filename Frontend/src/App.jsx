@@ -1,3 +1,4 @@
+// src/App.jsx
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import Login from './Components/Login';
 import Registro from './Components/Registro';
@@ -9,48 +10,43 @@ import Navbar from './Components/Navbar';
 import Footer from './Components/Footer';
 import Home from './Components/Home';
 
-
 function App() {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<Navigate to="/Home" />} />
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/userlogin" />} />
 
-                <Route path="/userlogin" element={<Login />} />
-                <Route path="/Registro" element={<Registro />} />
+        <Route path="/userlogin" element={<Login />} />
+        <Route path="/Registro" element={<Registro />} />
 
-                <Route element={<LayoutWithNavbar />}>
-                <Route path="/Home" element={<Home />} />
-                {/* RUTAS PARA EL ADMINISTRADOR */}
+        <Route element={<LayoutWithNavbar />}>
+          <Route path="/Home" element={<Home />} />
 
-                    <Route path="/Admin" element={
-                        <ProtectedRoute allowedRoles={['ADMIN']}>
-                            <Admin />
-                        </ProtectedRoute>
-                    } />
+          <Route
+            path="/Admin"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
 
+          <Route
+            path="/Inicio"
+            element={
+              <ProtectedRoute allowedRoles={['ESTUDIANTE','PROFESOR','USER']}>
+                <Inicio />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
 
-                {/* RUTAS PARA LOS USUARIOS */}   
-
-                
-                    <Route path="/Inicio" element={
-                        <ProtectedRoute allowedRoles={['USER']}>
-                            <Inicio />
-                        </ProtectedRoute>
-                    } />
-                </Route>
-
-    
-
-                {/* RUTA NO ENCONTRADA */}
-                <Route path="*" element={<NotFound />} />
-            </Routes>
-        </Router>
-    );
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
+  );
 }
 
-
-//Navbar
 function LayoutWithNavbar() {
   return (
     <>
