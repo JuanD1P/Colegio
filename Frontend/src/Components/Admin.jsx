@@ -1,4 +1,3 @@
-// src/Components/Admin.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import "@sweetalert2/themes/borderless/borderless.css";
@@ -15,7 +14,9 @@ export default function Admin() {
   const [tab, setTab] = useState("pendientes"); // pendientes | activos | rechazados
   const [q, setQ] = useState("");
 
-  useEffect(() => { fetchUsuarios(); }, []);
+  useEffect(() => {
+    fetchUsuarios();
+  }, []);
 
   async function fetchUsuarios() {
     try {
@@ -170,8 +171,13 @@ export default function Admin() {
         </div>
 
         <div className="admin-header-actions">
-          <button onClick={fetchUsuarios} className="btn">Actualizar</button>
-          <button onClick={() => (window.location.href = "/GraficasA")} className="btn accent">
+          <button onClick={fetchUsuarios} className="btn">
+            Actualizar
+          </button>
+          <button
+            onClick={() => (window.location.href = "/GraficasA")}
+            className="btn accent"
+          >
             DATOS PRODUCTOS
           </button>
         </div>
@@ -208,7 +214,9 @@ export default function Admin() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
-              <div className="chip">{loading ? "Cargando…" : `${list.length} usuarios`}</div>
+              <div className="chip">
+                {loading ? "Cargando…" : `${list.length} usuarios`}
+              </div>
             </div>
           </div>
 
@@ -228,12 +236,18 @@ export default function Admin() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={6}><div className="skeleton-row" /></td></tr>
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="skeleton-row" />
+                    </td>
+                  </tr>
                 ) : list.length ? (
                   list.map((u) => (
                     <tr key={u.id}>
                       <td className="mono">{u.id}</td>
-                      <td className="cell-strong">{u.nombre_completo || u.nombre || "-"}</td>
+                      <td className="cell-strong">
+                        {u.nombre_completo || u.nombre || "-"}
+                      </td>
                       <td>{u.email}</td>
                       <td>{u.rol || "-"}</td>
                       <td>{u.estado || "-"}</td>
@@ -241,17 +255,34 @@ export default function Admin() {
                         {tab === "pendientes" || tab === "rechazados" ? (
                           <>
                             <div className="btn-group">
-                              <button className="btn" onClick={() => aprobarUsuario(u.id, "ESTUDIANTE")}>
+                              <button
+                                className="btn"
+                                onClick={() =>
+                                  aprobarUsuario(u.id, "ESTUDIANTE")
+                                }
+                              >
                                 Aprobar (ESTUDIANTE)
                               </button>
-                              <button className="btn" onClick={() => aprobarUsuario(u.id, "PROFESOR")}>
+                              <button
+                                className="btn"
+                                onClick={() =>
+                                  aprobarUsuario(u.id, "PROFESOR")
+                                }
+                              >
                                 Aprobar (PROFESOR)
                               </button>
-                              <button className="btn accent" onClick={() => aprobarUsuario(u.id, "ADMIN")}>
+                              <button
+                                className="btn accent"
+                                onClick={() => aprobarUsuario(u.id, "ADMIN")}
+                              >
                                 Aprobar (ADMIN)
                               </button>
                             </div>
-                            <button className="btn danger" style={{ marginLeft: 8 }} onClick={() => rechazarUsuario(u.id)}>
+                            <button
+                              className="btn danger"
+                              style={{ marginLeft: 8 }}
+                              onClick={() => rechazarUsuario(u.id)}
+                            >
                               Rechazar
                             </button>
                           </>
@@ -260,11 +291,21 @@ export default function Admin() {
                             <select
                               className="admin-role-select"
                               value={u.rol || "USER"}
-                              onChange={(e) => cambiarRol(u.id, e.target.value)}
+                              onChange={(e) =>
+                                cambiarRol(u.id, e.target.value)
+                              }
                             >
-                              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                              {ROLES.map((r) => (
+                                <option key={r} value={r}>
+                                  {r}
+                                </option>
+                              ))}
                             </select>
-                            <button className="btn danger" style={{ marginLeft: 8 }} onClick={() => eliminarUsuario(u.id)}>
+                            <button
+                              className="btn danger"
+                              style={{ marginLeft: 8 }}
+                              onClick={() => eliminarUsuario(u.id)}
+                            >
                               Eliminar
                             </button>
                           </>
@@ -273,7 +314,11 @@ export default function Admin() {
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={6} className="cell-empty">Sin resultados</td></tr>
+                  <tr>
+                    <td colSpan={6} className="cell-empty">
+                      Sin resultados
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
