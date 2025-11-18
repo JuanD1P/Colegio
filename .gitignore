@@ -1,0 +1,8 @@
+# Env files
+Backend/.env
+Frontend/.env
+
+# Firebase service account keys
+Backend/serviceAccountKey.json
+Backend/serviceAccountKey.runtime.json
+colegio-8b670-firebase-adminsdk-*.json
