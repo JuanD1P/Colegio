@@ -1,46 +1,88 @@
-// src/App.jsx
-import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
-import Login from './Components/Login';
-import Registro from './Components/Registro';
-import Inicio from './Components/Inicio';
-import NotFound from './Components/NotFound';
-import ProtectedRoute from './Components/PrivateRoute';
-import Admin from './Components/Admin';
-import Navbar from './Components/Navbar';
-import Footer from './Components/Footer';
-import Home from './Components/Home';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
+
+import Login from "./Components/Login";
+import Registro from "./Components/Registro";
+import Inicio from "./Components/Inicio";
+import NotFound from "./Components/NotFound";
+import ProtectedRoute from "./Components/PrivateRoute";
+import Admin from "./Components/Admin";
+import Navbar from "./Components/Navbar";
+import Footer from "./Components/Footer";
+import Home from "./Components/Home";
+import Grupos from "./Components/Grupos";
+import AdminCursos from "./Components/AdminCursos";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* raíz → login */}
         <Route path="/" element={<Navigate to="/userlogin" />} />
 
+        {/* auth pública */}
         <Route path="/userlogin" element={<Login />} />
-        <Route path="/Registro" element={<Registro />} />
+        <Route path="/registro" element={<Registro />} />
 
+        {/* todo lo que lleva navbar/footer */}
         <Route element={<LayoutWithNavbar />}>
-          <Route path="/Home" element={<Home />} />
-
+          {/* PROFESOR */}
           <Route
-            path="/Admin"
+            path="/home"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["PROFESOR"]}>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ADMIN – Panel de usuarios */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <Admin />
               </ProtectedRoute>
             }
           />
 
+          {/* ADMIN – Gestión de grupos */}
           <Route
-            path="/Inicio"
+            path="/admin/grupos"
             element={
-              <ProtectedRoute allowedRoles={['ESTUDIANTE','PROFESOR','USER']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <Grupos />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ADMIN – Gestión de cursos */}
+          <Route
+            path="/admin/cursos"
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
+                <AdminCursos />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ESTUDIANTE */}
+          <Route
+            path="/inicio"
+            element={
+              <ProtectedRoute allowedRoles={["ESTUDIANTE"]}>
                 <Inicio />
               </ProtectedRoute>
             }
           />
         </Route>
 
+        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

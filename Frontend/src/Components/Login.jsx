@@ -64,9 +64,20 @@ export default function Login() {
     return err?.message || "Ocurrió un error";
   };
 
-  const goHomeByRole = (rol) => {
-    if (rol === "ADMIN") navigate("/Admin", { replace: true });
-    else navigate("/Inicio", { replace: true });
+  // 🔥 Redirección según rol (coincide con las rutas de App.jsx)
+  const goHomeByRole = (rolCrudo) => {
+    const rol = (rolCrudo || "").toUpperCase();
+
+    if (rol === "ADMIN") {
+      navigate("/admin", { replace: true });
+    } else if (rol === "PROFESOR") {
+      navigate("/home", { replace: true });
+    } else if (rol === "ESTUDIANTE") {
+      navigate("/inicio", { replace: true });
+    } else {
+      // rol desconocido → lo mandamos al inicio genérico
+      navigate("/inicio", { replace: true });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -92,10 +103,10 @@ export default function Login() {
         idToken,
       });
 
-      // activo
-      const data = res.data;
+      const data = res.data; // { ok, uid, rol }
       localStorage.setItem("auth-token", idToken);
       localStorage.setItem("user-role", data.rol);
+
       showToast("Sesión iniciada", {
         variant: "success",
         title: "Bienvenido",
@@ -107,10 +118,11 @@ export default function Login() {
       const status = err?.response?.status;
 
       if (apiMsg?.toLowerCase?.().includes("pendiente")) {
-        // limpiar y cerrar sesión
         localStorage.removeItem("auth-token");
         localStorage.removeItem("user-role");
-        try { await auth.signOut(); } catch {}
+        try {
+          await auth.signOut();
+        } catch {}
         showToast(
           "Tu cuenta está pendiente de aprobación del administrador.",
           { variant: "warning", title: "Esperando aprobación" }
@@ -120,9 +132,12 @@ export default function Login() {
 
       if (status === 401) {
         showToast("Token inválido. Intenta iniciar sesión de nuevo.", {
-          variant: "error", title: "Autenticación"
+          variant: "error",
+          title: "Autenticación",
         });
-        try { await auth.signOut(); } catch {}
+        try {
+          await auth.signOut();
+        } catch {}
         return;
       }
 
@@ -146,7 +161,6 @@ export default function Login() {
         idToken,
       });
 
-      // activo
       const data = res.data;
       localStorage.setItem("auth-token", idToken);
       localStorage.setItem("user-role", data.rol);
@@ -170,10 +184,11 @@ export default function Login() {
       const status = error?.response?.status;
 
       if (apiMsg?.toLowerCase?.().includes("pendiente")) {
-        // limpiar y cerrar sesión
         localStorage.removeItem("auth-token");
         localStorage.removeItem("user-role");
-        try { await auth.signOut(); } catch {}
+        try {
+          await auth.signOut();
+        } catch {}
         showToast(
           "Cuenta creada. Está pendiente de aprobación del administrador.",
           { variant: "success", title: "Registro enviado", icon: "✅" }
@@ -184,9 +199,12 @@ export default function Login() {
 
       if (status === 401) {
         showToast("Token inválido. Intenta de nuevo.", {
-          variant: "error", title: "Autenticación"
+          variant: "error",
+          title: "Autenticación",
         });
-        try { await auth.signOut(); } catch {}
+        try {
+          await auth.signOut();
+        } catch {}
         return;
       }
 
@@ -224,7 +242,10 @@ export default function Login() {
       closeResetModal();
     } catch (err) {
       const msg = firebaseErrorToMessage(err);
-      showToast(msg, { variant: "error", title: "No se pudo enviar el correo" });
+      showToast(msg, {
+        variant: "error",
+        title: "No se pudo enviar el correo",
+      });
     } finally {
       setLoading(false);
     }
@@ -236,14 +257,14 @@ export default function Login() {
 
       <section className="login-left">
         <header className="login-header">
-          <img src={logo} alt="FlowUp" className="login-logo" />
+          <img src={logo} alt="ByteTools" className="login-logo" />
         </header>
 
         <div className="left-body">
           <h2 className="login-title">Bienvenido de nuevo</h2>
           <p className="login-sub">Ingresa tus datos</p>
 
-        <form
+          <form
             ref={formRef}
             onSubmit={handleSubmit}
             className="login-form"
@@ -253,7 +274,9 @@ export default function Login() {
               type="email"
               placeholder="Correo"
               value={values.email}
-              onChange={(e) => setValues({ ...values, email: e.target.value })}
+              onChange={(e) =>
+                setValues({ ...values, email: e.target.value })
+              }
             />
             <input
               type="password"
@@ -292,7 +315,7 @@ export default function Login() {
 
           <p className="login-footer">
             ¿No tienes cuenta?{" "}
-            <span onClick={() => navigate("/Registro")}>Regístrate</span>
+            <span onClick={() => navigate("/registro")}>Regístrate</span>
           </p>
         </div>
       </section>

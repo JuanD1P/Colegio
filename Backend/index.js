@@ -8,6 +8,9 @@ import admin from 'firebase-admin';
 import { authAdmin, firestoreAdmin } from './utils/db.js';
 import { requireAuth } from './middlewares/requireAuth.js';
 import { userRouter } from './Routes/usuariosR.js';
+import { gruposR } from './Routes/gruposR.js'; 
+import { cursosR } from './Routes/cursosR.js';
+import { matriculasR } from './Routes/matriculasR.js';
 
 const app = express();
 
@@ -37,8 +40,6 @@ function isDuplicateToken(idToken) {
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').toLowerCase();
 
 // ---------- /auth/session ----------
-// REEMPLAZA COMPLETO tu /auth/session por este (Backend/index.js)
-
 app.post('/auth/session', async (req, res) => {
   const rid = Math.random().toString(36).slice(2, 8); // id del request
   try {
@@ -110,16 +111,19 @@ app.post('/auth/session', async (req, res) => {
     return res.json({ ok: true, uid, rol: data.rol || 'USER' });
 
   } catch (e) {
-    // ESTE CATCH SOLO SI SE ESCAPÓ ALGO; LOGUEA TODO
     console.error('❌ /auth/session CATCH rid=', rid, 'code=', e?.code, 'msg=', e?.message || e);
     console.error(e?.stack);
     return res.status(401).json({ error: 'Token inválido' });
   }
 });
 
-
-// Rutas protegidas
+// ───────────────────────────────
+// Rutas protegidas /api
+// ───────────────────────────────
 app.use('/api', requireAuth, userRouter);
+app.use('/api', requireAuth, gruposR); 
+app.use('/api/cursos', cursosR);
+app.use('/api', requireAuth, matriculasR);
 
 // Healthcheck opcional
 app.get('/healthz', (_req, res) => res.json({ ok: true }));

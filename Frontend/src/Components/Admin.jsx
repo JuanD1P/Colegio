@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";           // ⬅️ IMPORTANTE
 import Swal from "sweetalert2";
 import "@sweetalert2/themes/borderless/borderless.css";
 import api from "../api/axios";
@@ -13,6 +14,8 @@ export default function Admin() {
   const [err, setErr] = useState("");
   const [tab, setTab] = useState("pendientes"); // pendientes | activos | rechazados
   const [q, setQ] = useState("");
+
+  const navigate = useNavigate();                // ⬅️ HOOK DE NAVEGACIÓN
 
   useEffect(() => {
     fetchUsuarios();
@@ -174,8 +177,26 @@ export default function Admin() {
           <button onClick={fetchUsuarios} className="btn">
             Actualizar
           </button>
+
           <button
-            onClick={() => (window.location.href = "/GraficasA")}
+            onClick={() => navigate("/admin/cursos")}
+            className="btn"
+          >
+            Cursos
+          </button>          
+
+          {/* Navegar a /admin/grupos SIN recargar la página */}
+          <button
+            onClick={() => navigate("/admin/grupos")}
+            className="btn"
+          >
+            Grupos
+          </button>
+
+
+
+          <button
+            onClick={() => navigate("/GraficasA")}
             className="btn accent"
           >
             DATOS PRODUCTOS
