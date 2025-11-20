@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import FormMaterial from "./FormMaterial";
+import "./DOCSS/HomeProfe.css";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -37,6 +38,11 @@ export default function Home() {
   const [editEnlace, setEditEnlace] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+
+  // Edición de notas de entregas
+  const [notaEdit, setNotaEdit] = useState({});
+  const [comentarioEdit, setComentarioEdit] = useState({});
+  const [savingNotaId, setSavingNotaId] = useState(null);
 
   // helper para formatear fecha de Firestore
   const formatFecha = (ts) => {
@@ -140,7 +146,7 @@ export default function Home() {
     setTareas([]);
   }, [cursoSel, gruposProfe]);
 
-  // 4) Cuando se elige grupo, cargar alumnos y materiales de ese grupo
+  // 4) Cuando se elige grupo, cargar alumnos, materiales y tareas de ese grupo
   useEffect(() => {
     if (!grupoSel) {
       setGrupoActual(null);
@@ -298,7 +304,6 @@ export default function Home() {
       return;
     }
 
-    // Cargar entregas desde el backend
     try {
       setTareas((prev) =>
         prev.map((t) =>
@@ -367,7 +372,6 @@ export default function Home() {
         comentario,
       });
 
-      // Actualizar en estado local
       setTareas((prev) =>
         prev.map((t) =>
           t.id !== tareaId
@@ -384,7 +388,8 @@ export default function Home() {
     } catch (err) {
       console.error("Error guardando nota:", err.response?.data || err);
       alert(
-        err.response?.data?.error || "No se pudo guardar la nota. Intenta de nuevo."
+        err.response?.data?.error ||
+          "No se pudo guardar la nota. Intenta de nuevo."
       );
     } finally {
       setSavingNotaId(null);
@@ -410,9 +415,7 @@ export default function Home() {
         {/* HEADER */}
         <header className="profe-header glass-strong">
           <div>
-            <h1 className="profe-title">
-              Hola, {user.nombre || "profesor"}
-            </h1>
+            <h1 className="profe-title">Hola, {user.nombre || "profesor"}</h1>
             <p className="profe-subtitle">
               Gestiona tus cursos, grupos y materiales desde aquí.
             </p>
@@ -440,7 +443,7 @@ export default function Home() {
 
           {!loadingGruposProfe && gruposProfe.length > 0 && (
             <>
-              {/* Selecciones */}
+              {/* Selección de curso / grupo */}
               <section className="profe-section">
                 <h2 className="profe-sectionTitle">Mis cursos y grupos</h2>
 
@@ -462,46 +465,53 @@ export default function Home() {
                   </div>
                 </div>
 
-          {/* Selección de grupo */}
-          {cursoSel && (
-            <div style={{ margin: "1rem 0" }}>
-              <label>
-                Grupo:&nbsp;
-                {gruposFiltrados.length === 0 ? (
-                  <span>No tienes grupos en este curso.</span>
-                ) : (
-                  <select
-                    value={grupoSel}
-                    onChange={(e) => setGrupoSel(e.target.value)}
-                  >
-                    <option value="">-- Selecciona un grupo --</option>
-                    {gruposFiltrados.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.nombre || g.cursoNombre || "Grupo sin nombre"}
-                      </option>
-                    ))}
-                  </select>
+                {cursoSel && (
+                  <div className="profe-row">
+                    <div className="profe-field">
+                      <span className="profe-label">Grupo</span>
+                      {gruposFiltrados.length === 0 ? (
+                        <span className="profe-info">
+                          No tienes grupos en este curso.
+                        </span>
+                      ) : (
+                        <select
+                          className="profe-select"
+                          value={grupoSel}
+                          onChange={(e) => setGrupoSel(e.target.value)}
+                        >
+                          <option value="">Selecciona un grupo</option>
+                          {gruposFiltrados.map((g) => (
+                            <option key={g.id} value={g.id}>
+                              {g.nombre || g.cursoNombre || "Grupo sin nombre"}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </label>
-            </div>
-          )}
+              </section>
 
-          {/* Detalle de grupo: horario + alumnos + materiales */}
-          {grupoActual && (
-            <div style={{ marginTop: "1.5rem" }}>
-              <h3>Grupo: {grupoActual.nombre}</h3>
-              <p>
-                Curso: {grupoActual.cursoNombre || "N/D"}{" "}
-                {grupoActual.totalAlumnos != null && (
-                  <> – Matrículas: {grupoActual.totalAlumnos}</>
-                )}
-              </p>
+              {/* Detalle del grupo */}
+              {grupoActual && (
+                <section className="profe-section profe-section--card">
+                  <header className="profe-groupHeader">
+                    <div>
+                      <h2 className="profe-sectionTitle">
+                        Grupo: {grupoActual.nombre}
+                      </h2>
+                      <p className="profe-groupMeta">
+                        Curso: {grupoActual.cursoNombre || "N/D"}
+                        {grupoActual.totalAlumnos != null && (
+                          <> · Matrículas: {grupoActual.totalAlumnos}</>
+                        )}
+                      </p>
+                    </div>
+                  </header>
 
                   {/* Horario */}
                   <div className="profe-block">
-                    <h3 className="profe-subsectionTitle">
-                      Horario y aulas
-                    </h3>
+                    <h3 className="profe-subsectionTitle">Horario y aulas</h3>
                     {Array.isArray(grupoActual.horario) &&
                     grupoActual.horario.length > 0 ? (
                       <ul className="profe-list">
@@ -638,9 +648,7 @@ export default function Home() {
                                 <div className="profe-materialHeader">
                                   <div>
                                     <strong>{m.titulo}</strong>
-                                    <small>
-                                      {formatFecha(m.createdAt)}
-                                    </small>
+                                    <small>{formatFecha(m.createdAt)}</small>
                                   </div>
                                 </div>
 
@@ -701,19 +709,172 @@ export default function Home() {
                         ))}
                       </ul>
                     )}
+                  </div>
 
-              {/* Formulario para publicar nuevo material */}
-              <FormMaterial
-                cursoId={grupoActual.cursoId}
-                grupoId={grupoActual.id}
-                onUploaded={(nuevo) =>
-                  setMateriales((prev) => [nuevo, ...prev])
-                }
-              />
-            </div>
+                  {/* Publicar nuevo material */}
+                  <div className="profe-block">
+                    <h3 className="profe-subsectionTitle">Publicar material</h3>
+                    <div className="profe-formMaterial">
+                      <FormMaterial
+                        cursoId={grupoActual.cursoId}
+                        grupoId={grupoActual.id}
+                        onUploaded={(nuevo) =>
+                          setMateriales((prev) => [nuevo, ...prev])
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tareas del grupo */}
+                  <div className="profe-block">
+                    <h3 className="profe-subsectionTitle">Tareas del grupo</h3>
+
+                    {loadingTareas && (
+                      <p className="profe-info">Cargando tareas...</p>
+                    )}
+
+                    {!loadingTareas && tareas.length === 0 && (
+                      <p className="profe-info">
+                        Aún no hay tareas registradas para este grupo.
+                      </p>
+                    )}
+
+                    {!loadingTareas && tareas.length > 0 && (
+                      <ul className="profe-materialList">
+                        {tareas.map((t) => (
+                          <li key={t.id} className="profe-materialItem">
+                            <div className="profe-materialHeader">
+                              <div>
+                                <strong>{t.titulo}</strong>
+                                {t.fechaEntrega && (
+                                  <small>
+                                    Entrega: {formatFecha(t.fechaEntrega)}
+                                  </small>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                className="profe-btn profe-btn--ghost"
+                                onClick={() => toggleEntregas(t.id)}
+                              >
+                                {t.mostrarEntregas
+                                  ? "Ocultar entregas"
+                                  : "Ver entregas"}
+                              </button>
+                            </div>
+
+                            {t.descripcion && (
+                              <p className="profe-materialDesc">
+                                {t.descripcion}
+                              </p>
+                            )}
+
+                            {t.mostrarEntregas && (
+                              <div className="profe-block">
+                                {t.cargandoEntregas ? (
+                                  <p className="profe-info">
+                                    Cargando entregas...
+                                  </p>
+                                ) : t.entregas && t.entregas.length > 0 ? (
+                                  <ul className="profe-list">
+                                    {t.entregas.map((e) => (
+                                      <li
+                                        key={e.id}
+                                        className="profe-listItem"
+                                      >
+                                        <div className="profe-listMain">
+                                          <strong>
+                                            {e.alumnoNombre ||
+                                              e.alumnoEmail ||
+                                              "Estudiante"}
+                                          </strong>
+                                          <span className="profe-listSecondary">
+                                            {e.alumnoEmail}{" "}
+                                            {e.fechaEntrega &&
+                                              `· ${formatFecha(
+                                                e.fechaEntrega
+                                              )}`}
+                                          </span>
+                                        </div>
+
+                                        <div
+                                          style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 4,
+                                            alignItems: "flex-end",
+                                          }}
+                                        >
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            value={
+                                              notaEdit[e.id] ??
+                                              (e.nota ?? "")
+                                            }
+                                            onChange={(ev) =>
+                                              setNotaEdit((prev) => ({
+                                                ...prev,
+                                                [e.id]: ev.target.value,
+                                              }))
+                                            }
+                                            style={{
+                                              width: 72,
+                                              fontSize: "0.8rem",
+                                            }}
+                                          />
+                                          <textarea
+                                            value={
+                                              comentarioEdit[e.id] ??
+                                              (e.comentario ?? "")
+                                            }
+                                            onChange={(ev) =>
+                                              setComentarioEdit((prev) => ({
+                                                ...prev,
+                                                [e.id]: ev.target.value,
+                                              }))
+                                            }
+                                            style={{
+                                              width: 190,
+                                              fontSize: "0.78rem",
+                                              minHeight: 50,
+                                            }}
+                                          />
+                                          <button
+                                            type="button"
+                                            className="profe-btn profe-btn--primary"
+                                            onClick={() =>
+                                              guardarNotaEntrega(e.id, t.id)
+                                            }
+                                            disabled={savingNotaId === e.id}
+                                          >
+                                            {savingNotaId === e.id
+                                              ? "Guardando..."
+                                              : "Guardar nota"}
+                                          </button>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  <p className="profe-info">
+                                    Aún no hay entregas para esta tarea.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </section>
+              )}
+            </>
           )}
-        </>
-      )}
+        </main>
+      </div>
     </div>
   );
 }
