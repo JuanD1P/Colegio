@@ -1,10 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+
+import logo from "../ImagenesP/ImagenesLogin/ADMINLOGO.png";
+import "./DOCSS/Admin.css";
+import "./DOCSS/AdminGrupos.css";
 
 export default function Grupos() {
   const [cursos, setCursos] = useState([]);
   const [grupos, setGrupos] = useState([]);
-  const [alumnos, setAlumnos] = useState([]); // todos los usuarios
+  const [alumnos, setAlumnos] = useState([]);
 
   // selección para crear grupo
   const [cursoId, setCursoId] = useState("");
@@ -21,11 +26,13 @@ export default function Grupos() {
   const [loading, setLoading] = useState(false);
 
   // UI: ver alumnos matriculados por grupo
-  const [expandidos, setExpandidos] = useState({}); // { [grupoId]: true }
-  const [alumnosPorGrupo, setAlumnosPorGrupo] = useState({}); // { [grupoId]: { list, loading, error } }
+  const [expandidos, setExpandidos] = useState({});
+  const [alumnosPorGrupo, setAlumnosPorGrupo] = useState({});
 
   // Horario: borrador por grupo
-  const [nuevoHorario, setNuevoHorario] = useState({}); // { [grupoId]: { dia, aula, inicio, fin } }
+  const [nuevoHorario, setNuevoHorario] = useState({});
+
+  const navigate = useNavigate();
 
   /* ===================== HELPERS ===================== */
 
@@ -74,7 +81,7 @@ export default function Grupos() {
 
   async function loadGrupos() {
     try {
-      const { data } = await api.get("/api/grupos"); // admin: todos
+      const { data } = await api.get("/api/grupos");
       const arr = Array.isArray(data) ? data : [];
       setGrupos(arr);
       if (!grupoMatricula && arr.length) setGrupoMatricula(arr[0].id);
@@ -159,9 +166,7 @@ export default function Grupos() {
     () =>
       new Map(
         alumnos
-          .filter(
-            (u) => (u.rol || "").toUpperCase() === "PROFESOR"
-          )
+          .filter((u) => (u.rol || "").toUpperCase() === "PROFESOR")
           .map((p) => [
             p.id,
             {
@@ -179,7 +184,6 @@ export default function Grupos() {
     [profesById]
   );
 
-  // profesor por defecto para crear grupo
   useEffect(() => {
     if (!profesorId && listaProfes.length) {
       setProfesorId(listaProfes[0].id);
@@ -318,7 +322,7 @@ export default function Grupos() {
           });
           const arr = Array.isArray(data) ? data : [];
           lista = arr.map((m) => userFromMatricula(m, byId));
-        } catch (__){ }
+        } catch (__) {}
       }
 
       lista.sort((a, b) =>
@@ -413,434 +417,424 @@ export default function Grupos() {
   /* ===================== UI ===================== */
 
   return (
-    <div
-      className="page"
-      style={{
-        padding: 16,
-        height: "calc(100vh - 120px)", // espacio para navbar + footer
-        boxSizing: "border-box",
-        overflowY: "auto",
-      }}
-    >
-      <h2>Grupos (ADMIN)</h2>
+    <div className="admin-page">
+      <div className="admin-overlay" />
 
-      {/* Crear grupo */}
-      <section style={{ marginBottom: 24 }}>
-        <h3>Crear grupo</h3>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <select
-            value={cursoId}
-            onChange={(e) => setCursoId(e.target.value)}
-          >
-            {cursos.map((c) => (
-              <option key={c.id} value={c.id}>
-                {formatCurso(c)}
-              </option>
-            ))}
-          </select>
+      {/* HEADER */}
+      <header className="admin-header glass-strong">
+        <div className="admin-header-left">
+          <img src={logo} alt="Logo" className="admin-logo" />
+          <div>
+            <h1 className="admin-title">Gestión de grupos</h1>
+            <p className="admin-subtitle">
+              Crea grupos, matricula estudiantes y define horarios
+            </p>
+          </div>
+        </div>
 
-          <input
-            placeholder={`Nombre del grupo (opcional, p. ej. "${nombreSugerido}")`}
-            value={nombreGrupo}
-            onChange={(e) => setNombreGrupo(e.target.value)}
-            style={{ minWidth: 220 }}
-          />
-
-          <select
-            value={profesorId}
-            onChange={(e) => setProfesorId(e.target.value)}
-          >
-            {listaProfes.length ? (
-              listaProfes.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombre} {p.email ? `(${p.email})` : ""}
-                </option>
-              ))
-            ) : (
-              <option value="">(Sin profesores)</option>
-            )}
-          </select>
+        <div className="admin-header-actions">
+          <button className="btn" type="button" onClick={() => {
+            loadCursos();
+            loadGrupos();
+            loadUsuarios();
+          }}>
+            Actualizar
+          </button>
 
           <button
-            onClick={crearGrupo}
-            disabled={loading || !cursoId || !profesorId}
+            className="btn"
+            type="button"
+            onClick={() => navigate("/admin/cursos")}
           >
-            {loading ? "Creando..." : "Crear grupo"}
+            Ir a cursos
           </button>
-        </div>
-        <small>
-          Si no ingresas nombre, se usará: <b>{nombreSugerido}</b>
-        </small>
-      </section>
-
-      {/* Matricular alumno */}
-      <section style={{ marginBottom: 24 }}>
-        <h3>Matricular alumno</h3>
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
-          <select
-            value={grupoMatricula}
-            onChange={(e) => setGrupoMatricula(e.target.value)}
-            disabled={!grupos.length}
-            title="Grupo destino"
-          >
-            {grupos.length ? (
-              grupos.map((g) => {
-                const curso = cursosById.get(g.cursoId);
-                return (
-                  <option key={g.id} value={g.id}>
-                    {g.nombre} •{" "}
-                    {curso ? formatCurso(curso) : g.cursoNombre || g.cursoId}
-                  </option>
-                );
-              })
-            ) : (
-              <option value="">(No hay grupos)</option>
-            )}
-          </select>
-
-          <input
-            placeholder="Buscar alumno (nombre/email/documento)"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            style={{ minWidth: 260 }}
-          />
-
-          <select
-            value={alumnoSel}
-            onChange={(e) => setAlumnoSel(e.target.value)}
-            disabled={!alumnosFiltrados.length}
-            title="Alumno a matricular"
-          >
-            {alumnosFiltrados.length ? (
-              alumnosFiltrados.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {(
-                    a.nombre ||
-                    a.nombre_completo ||
-                    `${a.nombres || ""} ${a.apellidos || ""}`.trim() ||
-                    "(sin nombre)"
-                  )}{" "}
-                  — {a.email}
-                </option>
-              ))
-            ) : (
-              <option value="">(Sin coincidencias)</option>
-            )}
-          </select>
 
           <button
-            onClick={matricular}
-            disabled={!grupos.length || !alumnoSel || loading}
+            className="btn"
+            type="button"
+            onClick={() => navigate("/admin")}
           >
-            {loading ? "Matriculando..." : "Matricular"}
+            Volver al panel
           </button>
         </div>
-        <small>
-          Se muestran solo <b>ESTUDIANTES</b> activos (y, si existe el campo,
-          con <code>perfilCompleto</code>).
-        </small>
-      </section>
+      </header>
 
-      {/* Listado de grupos */}
-      <section>
-        <h3>Listado de grupos</h3>
-        {!grupos.length ? (
-          <div>Sin grupos</div>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: 8 }}>Grupo</th>
-                <th style={{ textAlign: "left", padding: 8 }}>Curso</th>
-                <th style={{ textAlign: "left", padding: 8 }}>Profesor</th>
-                <th style={{ textAlign: "left", padding: 8 }}>Estudiantes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {grupos.map((g) => {
-                const info = alumnosPorGrupo[g.id] || {
-                  list: [],
-                  loading: false,
-                  error: "",
-                };
-                const abierto = !!expandidos[g.id];
-                const contador = Array.isArray(g.alumnos)
-                  ? g.alumnos.length
-                  : info.list.length;
-                const listaRender = info.list.length ? info.list : g.alumnos;
+      {/* CONTENIDO */}
+      <main className="admin-content">
+        <section className="card glass-strong adminGrupos-card">
+          {/* CREAR Y MATRICULAR */}
+          <div className="adminGrupos-top">
+            {/* Crear grupo */}
+            <section className="adminGrupos-block">
+              <h2 className="adminGrupos-blockTitle">Crear grupo</h2>
+              <form
+                className="adminGrupos-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  crearGrupo();
+                }}
+              >
+                <select
+                  className="adminGrupos-select"
+                  value={cursoId}
+                  onChange={(e) => setCursoId(e.target.value)}
+                >
+                  {cursos.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {formatCurso(c)}
+                    </option>
+                  ))}
+                </select>
 
-                const curso = cursosById.get(g.cursoId);
-                const prof = profesById.get(g.profesorId);
-                const horario = Array.isArray(g.horario) ? g.horario : [];
+                <input
+                  className="adminGrupos-input"
+                  placeholder={`Nombre del grupo (ej. "${nombreSugerido}")`}
+                  value={nombreGrupo}
+                  onChange={(e) => setNombreGrupo(e.target.value)}
+                />
 
-                const draft = nuevoHorario[g.id] || {
-                  dia: 1,
-                  aula: "",
-                  inicio: "07:00",
-                  fin: "08:00",
-                };
+                <select
+                  className="adminGrupos-select"
+                  value={profesorId}
+                  onChange={(e) => setProfesorId(e.target.value)}
+                >
+                  {listaProfes.length ? (
+                    listaProfes.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nombre} {p.email ? `(${p.email})` : ""}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">(Sin profesores)</option>
+                  )}
+                </select>
 
-                return (
-                  <React.Fragment key={g.id}>
-                    <tr style={{ borderTop: "1px solid #eee" }}>
-                      <td style={{ padding: 8 }}>{g.nombre}</td>
-                      <td style={{ padding: 8 }}>
-                        {curso
-                          ? formatCurso(curso)
-                          : g.cursoNombre || g.cursoId || "—"}
-                      </td>
-                      <td style={{ padding: 8 }}>
-                        {prof
-                          ? `${prof.nombre}${
-                              prof.email ? ` (${prof.email})` : ""
-                            }`
-                          : g.profesorId || "—"}
-                      </td>
-                      <td style={{ padding: 8 }}>
-                        <button
-                          onClick={() => toggleExpand(g.id)}
-                          style={{ marginRight: 8 }}
-                        >
-                          {abierto ? "Ocultar" : "Ver"} alumnos
-                        </button>
-                        <small>
-                          {Number.isFinite(contador)
-                            ? `${contador} en total`
-                            : ""}
-                        </small>
-                      </td>
+                <button
+                  type="submit"
+                  className="btn accent adminGrupos-submit"
+                  disabled={loading || !cursoId || !profesorId}
+                >
+                  {loading ? "Creando..." : "Crear grupo"}
+                </button>
+              </form>
+              <p className="adminGrupos-help">
+                Si no escribes un nombre, se usará:{" "}
+                <span>{nombreSugerido}</span>.
+              </p>
+            </section>
+
+            {/* Matricular alumno */}
+            <section className="adminGrupos-block">
+              <h2 className="adminGrupos-blockTitle">Matricular alumno</h2>
+              <div className="adminGrupos-form">
+                <select
+                  className="adminGrupos-select"
+                  value={grupoMatricula}
+                  onChange={(e) => setGrupoMatricula(e.target.value)}
+                  disabled={!grupos.length}
+                >
+                  {grupos.length ? (
+                    grupos.map((g) => {
+                      const curso = cursosById.get(g.cursoId);
+                      return (
+                        <option key={g.id} value={g.id}>
+                          {g.nombre} •{" "}
+                          {curso ? formatCurso(curso) : g.cursoNombre || g.cursoId}
+                        </option>
+                      );
+                    })
+                  ) : (
+                    <option value="">(No hay grupos)</option>
+                  )}
+                </select>
+
+                <input
+                  className="adminGrupos-input"
+                  placeholder="Buscar alumno (nombre/email/documento)"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                />
+
+                <select
+                  className="adminGrupos-select"
+                  value={alumnoSel}
+                  onChange={(e) => setAlumnoSel(e.target.value)}
+                  disabled={!alumnosFiltrados.length}
+                >
+                  {alumnosFiltrados.length ? (
+                    alumnosFiltrados.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {(
+                          a.nombre ||
+                          a.nombre_completo ||
+                          `${a.nombres || ""} ${a.apellidos || ""}`.trim() ||
+                          "(sin nombre)"
+                        )}{" "}
+                        — {a.email}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">(Sin coincidencias)</option>
+                  )}
+                </select>
+
+                <button
+                  type="button"
+                  className="btn accent adminGrupos-submit"
+                  onClick={matricular}
+                  disabled={!grupos.length || !alumnoSel || loading}
+                >
+                  {loading ? "Matriculando..." : "Matricular"}
+                </button>
+              </div>
+              <p className="adminGrupos-help">
+                Solo se muestran <b>ESTUDIANTES</b> activos (y, si existe,
+                con <code>perfilCompleto</code> en true).
+              </p>
+            </section>
+          </div>
+
+          {/* LISTADO DE GRUPOS */}
+          <section className="adminGrupos-list">
+            <h2 className="adminGrupos-blockTitle">Listado de grupos</h2>
+
+            {!grupos.length ? (
+              <div className="cell-empty">Sin grupos</div>
+            ) : (
+              <div className="table-scroll">
+                <table className="admin-table adminGrupos-table">
+                  <thead>
+                    <tr>
+                      <th>Grupo</th>
+                      <th>Curso</th>
+                      <th>Profesor</th>
+                      <th>Estudiantes</th>
                     </tr>
+                  </thead>
+                  <tbody>
+                    {grupos.map((g) => {
+                      const info = alumnosPorGrupo[g.id] || {
+                        list: [],
+                        loading: false,
+                        error: "",
+                      };
+                      const abierto = !!expandidos[g.id];
+                      const contador = Array.isArray(g.alumnos)
+                        ? g.alumnos.length
+                        : info.list.length;
+                      const listaRender = info.list.length
+                        ? info.list
+                        : g.alumnos;
 
-                    {abierto && (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          style={{ padding: 8, background: "#fafafa" }}
-                        >
-                          {/* ALUMNOS */}
-                          <h4>Estudiantes del grupo</h4>
-                          {info.loading ? (
-                            <div>Cargando alumnos...</div>
-                          ) : info.error ? (
-                            <div style={{ color: "crimson" }}>
-                              {info.error}
-                            </div>
-                          ) : listaRender && listaRender.length ? (
-                            <table
-                              style={{
-                                width: "100%",
-                                borderCollapse: "collapse",
-                                marginBottom: 12,
-                              }}
-                            >
-                              <thead>
-                                <tr>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
+                      const curso = cursosById.get(g.cursoId);
+                      const prof = profesById.get(g.profesorId);
+                      const horario = Array.isArray(g.horario) ? g.horario : [];
+
+                      const draft = nuevoHorario[g.id] || {
+                        dia: 1,
+                        aula: "",
+                        inicio: "07:00",
+                        fin: "08:00",
+                      };
+
+                      return (
+                        <React.Fragment key={g.id}>
+                          <tr>
+                            <td className="cell-strong">{g.nombre}</td>
+                            <td>
+                              {curso
+                                ? formatCurso(curso)
+                                : g.cursoNombre || g.cursoId || "—"}
+                            </td>
+                            <td>
+                              {prof
+                                ? `${prof.nombre}${
+                                    prof.email ? ` (${prof.email})` : ""
+                                  }`
+                                : g.profesorId || "—"}
+                            </td>
+                            <td>
+                              <button
+                                type="button"
+                                className="btn adminGrupos-toggle"
+                                onClick={() => toggleExpand(g.id)}
+                              >
+                                {abierto ? "Ocultar alumnos" : "Ver alumnos"}
+                              </button>
+                              <small className="adminGrupos-count">
+                                {Number.isFinite(contador)
+                                  ? `${contador} en total`
+                                  : ""}
+                              </small>
+                            </td>
+                          </tr>
+
+                          {abierto && (
+                            <tr>
+                              <td colSpan={4} className="adminGrupos-subrow">
+                                {/* ALUMNOS */}
+                                <h3 className="adminGrupos-subtitle">
+                                  Estudiantes del grupo
+                                </h3>
+                                {info.loading ? (
+                                  <div className="adminGrupos-subloading">
+                                    Cargando alumnos...
+                                  </div>
+                                ) : info.error ? (
+                                  <div className="adminGrupos-suberror">
+                                    {info.error}
+                                  </div>
+                                ) : listaRender && listaRender.length ? (
+                                  <table className="adminGrupos-subtable">
+                                    <thead>
+                                      <tr>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Documento</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {listaRender.map((al, idx) => (
+                                        <tr key={al.id || al.uid || idx}>
+                                          <td>
+                                            {al.nombre ||
+                                              al.nombre_completo ||
+                                              `${al.nombres || ""} ${
+                                                al.apellidos || ""
+                                              }`.trim() ||
+                                              "(sin nombre)"}
+                                          </td>
+                                          <td>{al.email || al.correo || "—"}</td>
+                                          <td>
+                                            {al.documento ||
+                                              al.numDoc ||
+                                              al.doc ||
+                                              "—"}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                ) : (
+                                  <div className="adminGrupos-subempty">
+                                    No hay estudiantes matriculados todavía.
+                                  </div>
+                                )}
+
+                                {/* HORARIO */}
+                                <h3 className="adminGrupos-subtitle">
+                                  Horario del grupo
+                                </h3>
+                                {horario.length ? (
+                                  <table className="adminGrupos-subtable">
+                                    <thead>
+                                      <tr>
+                                        <th>Día</th>
+                                        <th>Aula</th>
+                                        <th>Inicio</th>
+                                        <th>Fin</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {horario.map((h, i) => (
+                                        <tr key={i}>
+                                          <td>{diaToTexto(h.dia)}</td>
+                                          <td>{h.aula}</td>
+                                          <td>{h.inicio}</td>
+                                          <td>{h.fin}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                ) : (
+                                  <div className="adminGrupos-subempty">
+                                    Sin horario definido.
+                                  </div>
+                                )}
+
+                                {/* FORM HORARIO */}
+                                <div className="adminGrupos-horarioForm">
+                                  <select
+                                    className="adminGrupos-select"
+                                    value={draft.dia}
+                                    onChange={(e) =>
+                                      onChangeNuevoHorario(
+                                        g.id,
+                                        "dia",
+                                        Number(e.target.value)
+                                      )
+                                    }
                                   >
-                                    Nombre
-                                  </th>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
+                                    <option value={1}>Lunes</option>
+                                    <option value={2}>Martes</option>
+                                    <option value={3}>Miércoles</option>
+                                    <option value={4}>Jueves</option>
+                                    <option value={5}>Viernes</option>
+                                    <option value={6}>Sábado</option>
+                                    <option value={7}>Domingo</option>
+                                  </select>
+
+                                  <input
+                                    className="adminGrupos-input adminGrupos-input--small"
+                                    placeholder="Aula"
+                                    value={draft.aula}
+                                    onChange={(e) =>
+                                      onChangeNuevoHorario(
+                                        g.id,
+                                        "aula",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+
+                                  <input
+                                    type="time"
+                                    className="adminGrupos-input adminGrupos-input--time"
+                                    value={draft.inicio}
+                                    onChange={(e) =>
+                                      onChangeNuevoHorario(
+                                        g.id,
+                                        "inicio",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+
+                                  <input
+                                    type="time"
+                                    className="adminGrupos-input adminGrupos-input--time"
+                                    value={draft.fin}
+                                    onChange={(e) =>
+                                      onChangeNuevoHorario(
+                                        g.id,
+                                        "fin",
+                                        e.target.value
+                                      )
+                                    }
+                                  />
+
+                                  <button
+                                    type="button"
+                                    className="btn accent adminGrupos-horarioBtn"
+                                    onClick={() => agregarHorario(g.id)}
+                                    disabled={loading}
                                   >
-                                    Email
-                                  </th>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
-                                  >
-                                    Documento
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {listaRender.map((al, idx) => (
-                                  <tr
-                                    key={al.id || al.uid || idx}
-                                    style={{ borderTop: "1px solid #eee" }}
-                                  >
-                                    <td style={{ padding: 6 }}>
-                                      {al.nombre ||
-                                        al.nombre_completo ||
-                                        `${al.nombres || ""} ${
-                                          al.apellidos || ""
-                                        }`.trim() ||
-                                        "(sin nombre)"}
-                                    </td>
-                                    <td style={{ padding: 6 }}>
-                                      {al.email || al.correo || "—"}
-                                    </td>
-                                    <td style={{ padding: 6 }}>
-                                      {al.documento ||
-                                        al.numDoc ||
-                                        al.doc ||
-                                        "—"}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          ) : (
-                            <div style={{ marginBottom: 12 }}>
-                              No hay estudiantes matriculados todavía.
-                            </div>
+                                    {loading ? "Guardando..." : "Agregar horario"}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
                           )}
-
-                          {/* HORARIO */}
-                          <h4>Horario del grupo</h4>
-                          {horario.length ? (
-                            <table
-                              style={{
-                                width: "100%",
-                                borderCollapse: "collapse",
-                                marginBottom: 8,
-                              }}
-                            >
-                              <thead>
-                                <tr>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
-                                  >
-                                    Día
-                                  </th>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
-                                  >
-                                    Aula
-                                  </th>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
-                                  >
-                                    Inicio
-                                  </th>
-                                  <th
-                                    style={{
-                                      textAlign: "left",
-                                      padding: 6,
-                                    }}
-                                  >
-                                    Fin
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {horario.map((h, i) => (
-                                  <tr key={i} style={{ borderTop: "1px solid #eee" }}>
-                                    <td style={{ padding: 6 }}>
-                                      {diaToTexto(h.dia)}
-                                    </td>
-                                    <td style={{ padding: 6 }}>{h.aula}</td>
-                                    <td style={{ padding: 6 }}>{h.inicio}</td>
-                                    <td style={{ padding: 6 }}>{h.fin}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          ) : (
-                            <div style={{ marginBottom: 8 }}>
-                              Sin horario definido.
-                            </div>
-                          )}
-
-                          {/* Formulario para agregar horario */}
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 8,
-                              flexWrap: "wrap",
-                              alignItems: "center",
-                              marginTop: 4,
-                            }}
-                          >
-                            <select
-                              value={draft.dia}
-                              onChange={(e) =>
-                                onChangeNuevoHorario(
-                                  g.id,
-                                  "dia",
-                                  Number(e.target.value)
-                                )
-                              }
-                            >
-                              <option value={1}>Lunes</option>
-                              <option value={2}>Martes</option>
-                              <option value={3}>Miércoles</option>
-                              <option value={4}>Jueves</option>
-                              <option value={5}>Viernes</option>
-                              <option value={6}>Sábado</option>
-                              <option value={7}>Domingo</option>
-                            </select>
-
-                            <input
-                              placeholder="Aula"
-                              value={draft.aula}
-                              onChange={(e) =>
-                                onChangeNuevoHorario(g.id, "aula", e.target.value)
-                              }
-                              style={{ width: 80 }}
-                            />
-
-                            <input
-                              type="time"
-                              value={draft.inicio}
-                              onChange={(e) =>
-                                onChangeNuevoHorario(
-                                  g.id,
-                                  "inicio",
-                                  e.target.value
-                                )
-                              }
-                            />
-
-                            <input
-                              type="time"
-                              value={draft.fin}
-                              onChange={(e) =>
-                                onChangeNuevoHorario(g.id, "fin", e.target.value)
-                              }
-                            />
-
-                            <button
-                              onClick={() => agregarHorario(g.id)}
-                              disabled={loading}
-                            >
-                              {loading ? "Guardando..." : "Agregar horario"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </section>
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </section>
+      </main>
     </div>
   );
 }

@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import logo from "../ImagenesP/ImagenesLogin/ByteTools.png";
-import bgHero from "/ImagenFondos/fondo.png";
+import logo from "../ImagenesP/ImagenesLogin/logo.png";
+import bgHero from "/ImagenFondos/fondo.jpg";
 import "./DOCSS/Login.css";
 
 import {
@@ -283,7 +283,7 @@ export default function Login() {
 
       <section className="login-left">
         <header className="login-header">
-          <img src={logo} alt="ByteTools" className="login-logo" />
+          <img src={logo} alt="Educa" className="login-logo" />
         </header>
 
         <div className="left-body">
@@ -351,8 +351,8 @@ export default function Login() {
         style={{ backgroundImage: `url(${bgHero})` }}
       >
         <div className="login-text">
-          <h2>Comunicacion de datos.</h2>
-          <p>Proyecto VI Semestre</p>
+          <h2>Educar es sembrar futuro</h2>
+          <p>Nutriendo el conocimiento</p>
         </div>
       </aside>
 
