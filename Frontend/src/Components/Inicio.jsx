@@ -1,4 +1,4 @@
-// src/Components/Inicio.jsx
+// src/Components/Inicio.jsxxd
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
