@@ -1,0 +1,584 @@
+/* ========= PALETA EXTRA (opcional, por si la quieres usar luego) ========= */
+:root {
+  --profe-brand: #2563eb;
+  --profe-brand-deep: #1d4ed8;
+  --profe-brand-soft: #dbeafe;
+}
+
+/* ===== LAYOUT GENERAL ===== */
+
+.profe-page {
+  position: relative;
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  background:
+    url("/ImagenFondos/fondo_prof.jpg"),
+    radial-gradient(circle at top left, #fff5fb 0%, #e6f0ff 60%, #eef2ff 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--ink-900);
+}
+
+.profe-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 10% 10%, rgba(243, 0, 136, 0.12) 0%, transparent 60%),
+    radial-gradient(60% 55% at 90% 85%, rgba(37, 99, 235, 0.14) 0%, transparent 65%),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.02));
+}
+
+.profe-frame {
+  width: min(1180px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== HEADER ===== */
+
+.profe-header {
+  border-radius: 24px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.profe-title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+.profe-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.profe-headerBadge {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.profe-badge {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--profe-brand-soft), #ffffff);
+  border: 1px solid rgba(37, 99, 235, 0.35);   /* azul suave */
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* ===== CONTENIDO PRINCIPAL ===== */
+
+.profe-main {
+  border-radius: 24px;
+  padding: 18px 20px 22px;
+}
+
+.profe-section {
+  margin-bottom: 18px;
+}
+
+.profe-sectionTitle {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+/* Tarjeta gris suave para el grupo */
+.profe-section--card {
+  margin-top: 8px;
+  background: radial-gradient(circle at top left, #f9fafb 0%, #e5e7eb 60%);
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+
+.profe-block {
+  margin-top: 12px;
+}
+
+.profe-subsectionTitle {
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.profe-groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profe-groupMeta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* ===== FILA CAMPOS (curso / grupo) ===== */
+
+.profe-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.profe-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+}
+
+.profe-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.profe-select {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(248, 250, 252, 0.96);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  transition: border var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.profe-select:focus {
+  border-color: var(--profe-brand); /* antes: var(--brand) */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.20); /* antes: fucsia */
+  background: #ffffff;
+}
+
+/* ===== LISTAS ===== */
+
+.profe-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profe-listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.profe-listMain {
+  display: flex;
+  flex-direction: column;
+}
+
+.profe-listSecondary {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Chip rosadito para Doc, etc. */
+.profe-chip {
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: var(--profe-brand-soft); 
+  color: var(--profe-brand-deep);      
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+/* ===== BOTONES (AZULES) ===== */
+
+.profe-btn {
+  border-radius: 9999px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform var(--fast), box-shadow var(--fast),
+              background var(--fast), color var(--fast);
+}
+
+/* principal azul */
+.profe-btn--primary {
+  background: var(--profe-brand);       /* antes: var(--brand-alt) */
+  border-color: var(--profe-brand);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.38);
+}
+
+.profe-btn--primary:hover {
+  background: var(--profe-brand-deep);  /* antes: var(--brand-deep) */
+  border-color: var(--profe-brand-deep);
+  transform: translateY(-1px);
+}
+
+/* Ghost azul */
+.profe-btn--ghost {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: var(--profe-brand-deep);
+}
+.profe-btn--ghost:hover {
+  background: #e0ecff;
+  transform: translateY(-1px);
+}
+
+
+.profe-btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+}
+
+
+
+
+/* peligro rojo, igual que en admin */
+.profe-btn--danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.2);
+}
+
+.profe-btn--danger:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* ===== MATERIALES (lista y vista) ===== */
+
+.profe-materialList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profe-materialItem {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  padding: 10px 12px;
+}
+
+.profe-materialHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.profe-materialHeader small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.profe-materialDesc {
+  margin: 4px 0 4px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.profe-materialLink {
+  margin: 2px 0;
+  font-size: 0.85rem;
+}
+
+.profe-materialLink a {
+  color: var(--profe-brand);   /* antes: var(--brand-alt) */
+  text-decoration: underline;
+}
+
+.profe-editActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* Modo edición */
+.profe-materialEdit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profe-editField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.profe-editField input,
+.profe-editField textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.profe-editField textarea {
+  min-height: 60px;
+}
+
+/* ===== FORMULARIO PUBLICAR MATERIAL (FormMaterial) ===== */
+
+.profe-formMaterial input[type="text"],
+.profe-formMaterial input[type="url"],
+.profe-formMaterial textarea {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  background: rgba(248, 250, 252, 0.96);
+  transition: border var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.profe-formMaterial textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.profe-formMaterial input[type="text"]:focus,
+.profe-formMaterial input[type="url"]:focus,
+.profe-formMaterial textarea:focus {
+  outline: none;
+  border-color: var(--profe-brand); /* ahora azul */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.22);
+  background: #ffffff;
+}
+
+/* Tarjetita blanca alrededor del formulario */
+.profe-formMaterial form {
+  margin-top: 8px;
+  padding: 14px 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Label + inputs */
+.profe-formMaterial label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+
+/* input file */
+.profe-formMaterial input[type="file"] {
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: #475569;
+}
+
+/* Navegadores modernos */
+.profe-formMaterial input[type="file"]::file-selector-button {
+  border-radius: 9999px;
+  padding: 8px 16px;
+  margin-right: 10px;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, var(--profe-brand), var(--profe-brand-deep));
+  color: #ffffff;
+
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  transition: transform 160ms cubic-bezier(.2,.8,.2,1),
+              box-shadow 160ms cubic-bezier(.2,.8,.2,1),
+              filter 160ms cubic-bezier(.2,.8,.2,1);
+}
+
+.profe-formMaterial input[type="file"]::file-selector-button:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.45);
+}
+
+.profe-formMaterial input[type="file"]::file-selector-button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+}
+
+/* Safari / navegadores WebKit antiguos */
+.profe-formMaterial input[type="file"]::-webkit-file-upload-button {
+  border-radius: 9999px;
+  padding: 8px 16px;
+  margin-right: 10px;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, var(--profe-brand), var(--profe-brand-deep));
+  color: #ffffff;
+
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  transition: transform 160ms cubic-bezier(.2,.8,.2,1),
+              box-shadow 160ms cubic-bezier(.2,.8,.2,1),
+              filter 160ms cubic-bezier(.2,.8,.2,1);
+}
+.profe-formMaterial input[type="file"]::-webkit-file-upload-button:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.45);
+}
+.profe-formMaterial input[type="file"]::-webkit-file-upload-button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+}
+
+/* Contenedor del botón */
+.profe-formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.profe-formMaterial .profe-formActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+/* Botón “Publicar material” – azul estilo glass */
+.profe-formMaterial button[type="submit"],
+.profe-formMaterial .profe-formActions button,
+.profe-formMaterial button {
+  border-radius: 9999px;
+  padding: 10px 22px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  width: auto;
+  max-width: 260px;
+
+  background: linear-gradient(135deg, var(--profe-brand), var(--profe-brand-deep));
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.35),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  transition: transform var(--fast), box-shadow var(--fast),
+              background var(--fast), border-color var(--fast), filter var(--fast);
+}
+
+.profe-formMaterial button:hover {
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.4);
+}
+
+.profe-formMaterial button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+}
+
+.profe-emptyIcon {
+  font-size: 2.3rem;
+  line-height: 1;
+  filter: drop-shadow(0 10px 22px rgba(37,99,235,.25));
+}
+
+
+/* ===== MENSAJES ===== */
+
+.profe-error {
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.profe-info {
+  margin: 4px 0;
+  font-size: 0.84rem;
+  color: #6b7280;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .profe-page {
+    padding: 12px;
+  }
+
+  .profe-frame {
+    gap: 12px;
+  }
+
+  .profe-header,
+  .profe-main {
+    padding: 14px 14px 16px;
+  }
+
+  .profe-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profe-row {
+    flex-direction: column;
+  }
+
+  .profe-field {
+    width: 100%;
+  }
+}
+
+
