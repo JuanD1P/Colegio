@@ -1,0 +1,840 @@
+:root {
+  /* opcional, reutiliza tu paleta global rosada */
+  --estu-brand: var(--brand, #f30388);
+  --estu-brand-soft: var(--brand-soft, #ffe4f4);
+}
+
+/* ===== LAYOUT GENERAL ===== */
+
+.estu-page {
+  position: relative;
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto,
+    Arial, sans-serif;
+
+  background:
+    url("/ImagenFondos/fondo_est.jpg"),
+    radial-gradient(circle at top left, #fff5fb 0%, #f9e5ff 55%, #fdf2ff 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--ink-900, #0f172a);
+}
+
+.estu-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 50% at 10% 10%, rgba(243, 3, 136, 0.18) 0%, transparent 60%),
+    radial-gradient(60% 55% at 90% 85%, rgba(236, 72, 153, 0.16) 0%, transparent 65%),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.06), rgba(15, 23, 42, 0.01));
+}
+
+.estu-frame {
+  width: min(1180px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== HEADER ===== */
+
+.estu-header {
+  border-radius: 24px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.estu-title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+.estu-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted, #6b7280);
+}
+
+.estu-headerBadge {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.estu-badge {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    135deg,
+    rgba(254, 242, 255, 0.95),
+    rgba(255, 255, 255, 0.98)
+  );
+  border: 1px solid rgba(244, 114, 182, 0.6);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #9d174d;
+}
+
+/* ===== CONTENIDO ===== */
+
+.estu-main {
+  border-radius: 24px;
+  padding: 18px 20px 24px;
+}
+
+.estu-section {
+  margin-bottom: 18px;
+}
+
+.estu-section--card {
+  margin-top: 6px;
+  background: radial-gradient(circle at top left, #fefefe 0%, #f3f4f6 60%);
+  border-radius: 18px;
+  padding: 16px 18px 20px;
+}
+
+.estu-sectionTitle {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+.estu-block {
+  margin-top: 14px;
+}
+
+.estu-subsectionTitle {
+  margin: 0 0 6px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.estu-groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.estu-groupMeta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* ===== BANNER PERFIL ===== */
+
+.estu-bannerPerfil {
+  border-radius: 16px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(250, 204, 255, 0.9);
+  background: linear-gradient(
+    135deg,
+    rgba(253, 242, 255, 0.95),
+    rgba(255, 255, 255, 0.98)
+  );
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.estu-bannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.88rem;
+  color: #4b5563;
+}
+
+/* ===== FILTROS CURSO / GRUPO ===== */
+
+.estu-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.estu-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+}
+
+.estu-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.estu-select {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(248, 113, 181, 0.55);
+  background: rgba(255, 255, 255, 0.96);
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  transition: border 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.estu-select:focus {
+  border-color: var(--brand, #f30388);
+  box-shadow: 0 0 0 2px rgba(243, 3, 136, 0.21);
+  background: #ffffff;
+}
+
+/* ===== LISTAS GENERALES ===== */
+
+.estu-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.estu-listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.estu-listSecondary {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* ===== BOTONES ===== */
+
+.estu-btn {
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease,
+    background 0.16s ease, color 0.16s ease;
+}
+
+.estu-btn--primary {
+  background: linear-gradient(
+    135deg,
+    var(--brand, #f30388),
+    #db2777
+  );
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(236, 72, 153, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.estu-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.45);
+}
+
+.estu-btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.35);
+}
+
+/* ===== MATERIALES ===== */
+
+.estu-materialList {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.estu-materialItem {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  padding: 10px 12px;
+}
+
+.estu-materialHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.estu-materialHeader small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.estu-materialDesc {
+  margin: 4px 0 4px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.estu-materialLink {
+  margin: 2px 0;
+  font-size: 0.85rem;
+}
+
+.estu-materialLink a {
+  color: var(--brand, #f30388);
+  text-decoration: underline;
+}
+
+/* ===== PROMEDIO ===== */
+
+.estu-promedioCard {
+  margin-top: 12px;
+  padding: 0.8rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.9);
+  background: linear-gradient(135deg, #eff6ff, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.estu-promedioInfo {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.estu-promedioValor {
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: #1d4ed8;
+}
+
+/* ===== TAREAS ===== */
+
+.estu-tareas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.estu-tareaCard {
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 181, 0.25);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 10px 12px 12px;
+}
+
+.estu-tareaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.estu-tareaHeader small {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.estu-tareaDesc {
+  margin: 4px 0 6px;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+/* Chips de estado */
+.estu-chip {
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.estu-chip--neutral {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
+
+.estu-chip--ok {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.estu-chip--info {
+  background: #e0f2fe;
+  color: #075985;
+  border-color: #bae6fd;
+}
+
+/* Entrega resumen */
+.estu-entregaResumen {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid #e0f2fe;
+  background: #f9fbff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.estu-notaBubble {
+  width: 54px;
+  height: 54px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.2rem;
+  background: #ffe4f4;
+  border: 2px solid #f472b6;
+  color: #9d174d;
+}
+
+.estu-entregaTexto {
+  font-size: 0.86rem;
+  color: #374151;
+}
+
+.estu-entregaComentario {
+  margin-top: 2px;
+  font-style: italic;
+  font-size: 0.84rem;
+}
+
+/* ===== MENSAJES ===== */
+
+.estu-error {
+  margin: 4px 0 8px;
+  font-size: 0.86rem;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.estu-info {
+  margin: 4px 0;
+  font-size: 0.86rem;
+  color: #6b7280;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .estu-page {
+    padding: 12px;
+  }
+  .estu-frame {
+    gap: 12px;
+  }
+  .estu-header,
+  .estu-main {
+    padding: 14px 14px 16px;
+  }
+  .estu-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .estu-row {
+    flex-direction: column;
+  }
+  .estu-field {
+    width: 100%;
+  }
+  .estu-bannerPerfil {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.estu-promedioCard {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    rgba(252, 231, 243, 0.98),
+    rgba(255, 241, 246, 0.98)
+  );
+  border: 1px solid rgba(244, 114, 182, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 14px 30px rgba(244, 114, 182, 0.15);
+}
+
+.estu-promedioMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #4a044e;
+}
+
+.estu-promedioSub {
+  font-size: 0.85rem;
+  color: #9f1239;
+  opacity: 0.85;
+}
+
+.estu-promedioValue {
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #db2777;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 18px rgba(236, 72, 153, 0.35);
+  min-width: 70px;
+  text-align: center;
+}
+
+/* ===== FORMULARIO DE ENTREGA (última parte) ===== */
+
+.estu-entregaWrapper {
+  margin-top: 0.9rem;
+  padding: 0.85rem 1rem 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px dashed rgba(244, 114, 182, 0.6);
+  box-shadow: 0 10px 24px rgba(248, 187, 208, 0.25);
+}
+
+/* Formulario interno del componente */
+.estu-entregaWrapper form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Labels */
+.estu-entregaWrapper label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #6b021a;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Inputs, textarea, etc. */
+.estu-entregaWrapper input[type="text"],
+.estu-entregaWrapper input[type="url"],
+.estu-entregaWrapper textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(248, 113, 181, 0.7);
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  background: rgba(255, 247, 252, 0.98);
+  transition: border 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.estu-entregaWrapper textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.estu-entregaWrapper input[type="text"]:focus,
+.estu-entregaWrapper input[type="url"]:focus,
+.estu-entregaWrapper textarea:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.28);
+  background: #ffffff;
+}
+
+/* Input file: botón rosado */
+.estu-entregaWrapper input[type="file"] {
+  font-size: 0.82rem;
+  font-family: inherit;
+}
+
+.estu-entregaWrapper input[type="file"]::file-selector-button {
+  margin-right: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  border: 1px solid #f472b6;
+  background: linear-gradient(135deg, #fb7185, #ec4899);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    filter 0.15s ease;
+  box-shadow: 0 8px 18px rgba(236, 72, 153, 0.3);
+}
+
+.estu-entregaWrapper input[type="file"]::file-selector-button:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+}
+
+.estu-entregaWrapper input[type="file"]::file-selector-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+}
+
+/* Botón de enviar / reenviar */
+.estu-entregaWrapper button[type="submit"],
+.estu-entregaWrapper button {
+  align-self: flex-start;
+  border-radius: 9999px;
+  padding: 8px 18px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: linear-gradient(135deg, #fb7185, #ec4899);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(236, 72, 153, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.estu-entregaWrapper button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.estu-entregaWrapper button:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.35);
+}
+
+/* ===== ENTREGA DE TAREA (ESTUDIANTE) ===== */
+
+.estu-entrega {
+  border-top: 1px solid rgba(244, 114, 182, 0.4);
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+}
+
+.estu-entregaTitle {
+  margin: 0 0 0.4rem;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #9d174d;
+}
+
+.estu-entregaBanner {
+  margin-bottom: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 14px;
+  border: 1px solid rgba(190, 242, 100, 0.45);
+  background: linear-gradient(
+    135deg,
+    rgba(220, 252, 231, 0.95),
+    rgba(232, 252, 243, 0.98)
+  );
+  font-size: 0.86rem;
+  color: #14532d;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.estu-entregaBanner a {
+  color: #16a34a;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.estu-entregaBanner-line {
+  font-size: 0.84rem;
+}
+
+.estu-entregaWarning {
+  margin: 0.3rem 0 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.86rem;
+}
+
+.estu-entregaForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.estu-entregaError {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+/* Etiquetas e inputs (mismo estilo que el resto del panel) */
+
+.estu-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9f1239;
+}
+
+.estu-input,
+.estu-textarea {
+  border-radius: 12px;
+  border: 1px solid rgba(248, 113, 181, 0.6);
+  padding: 8px 11px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.98);
+  transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.estu-textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.estu-input:focus,
+.estu-textarea:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2);
+  background: #ffffff;
+}
+
+/* Fila del archivo con botón bonito */
+
+.estu-fileRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9f1239;
+}
+
+.estu-fileInputWrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+}
+
+.estu-fileInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.estu-fileFakeButton {
+  border-radius: 9999px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, #fb7185, #ec4899);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(236, 72, 153, 0.35);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.estu-fileFakeButton:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.4);
+}
+
+.estu-fileFakeButton:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.3);
+}
+
+.estu-fileName {
+  font-size: 0.8rem;
+  color: #4b5563;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Botón enviar */
+
+.estu-entregaActions {
+  margin-top: 2px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.estu-btn {
+  border-radius: 9999px;
+  padding: 9px 20px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease, filter 0.15s ease;
+}
+
+/* si ya lo tienes definido en el CSS, esta parte puede quedar igual / sobreescribirse */
+.estu-btn--primary {
+  background: linear-gradient(135deg, #fb7185, #ec4899);
+  color: #ffffff;
+  box-shadow: 0 10px 22px rgba(236, 72, 153, 0.35);
+}
+
+.estu-btn--primary:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.4);
+}
+
+.estu-btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(236, 72, 153, 0.3);
+}
+

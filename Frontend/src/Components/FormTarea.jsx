@@ -1,6 +1,7 @@
 // src/Components/FormTarea.jsx
 import React, { useState } from "react";
 import api from "../api/axios";
+import "./DOCSS/HomeProfe.css"; // para reutilizar los estilos del profe
 
 export default function FormTarea({ cursoId, grupoId, onCreated }) {
   const [titulo, setTitulo] = useState("");
@@ -43,7 +44,8 @@ export default function FormTarea({ cursoId, grupoId, onCreated }) {
     } catch (err) {
       console.error("Error creando tarea:", err.response?.data || err);
       setError(
-        err.response?.data?.error || "No se pudo crear la tarea. Intenta otra vez."
+        err.response?.data?.error ||
+          "No se pudo crear la tarea. Intenta otra vez."
       );
     } finally {
       setLoading(false);
@@ -51,51 +53,50 @@ export default function FormTarea({ cursoId, grupoId, onCreated }) {
   };
 
   return (
-    <div style={{ marginTop: "1.5rem" }}>
-      <h4>Crear nueva tarea</h4>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="profe-formTarea" id="profe-formTarea">
+      <h4 className="profe-subsectionTitle">Crear nueva tarea</h4>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>
-            Título*{" "}
-            <input
-              type="text"
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-              style={{ width: "100%" }}
-              required
-            />
-          </label>
+      {error && <p className="profe-error">{error}</p>}
+
+      <form onSubmit={handleSubmit} className="profe-formTareaForm">
+        <label className="profe-formTareaField">
+          <span>Título *</span>
+          <input
+            type="text"
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="profe-formTareaField">
+          <span>Descripción *</span>
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="profe-formTareaField">
+          <span>Fecha límite *</span>
+          <input
+            type="datetime-local"
+            value={fechaLimite}
+            onChange={(e) => setFechaLimite(e.target.value)}
+            required
+          />
+        </label>
+
+        <div className="profe-formTareaActions">
+          <button
+            type="submit"
+            className="profe-btn profe-btn--primary"
+            disabled={loading}
+          >
+            {loading ? "Creando..." : "Crear tarea"}
+          </button>
         </div>
-
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>
-            Descripción*{" "}
-            <textarea
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              style={{ width: "100%", minHeight: "60px" }}
-              required
-            />
-          </label>
-        </div>
-
-        <div style={{ marginBottom: "0.5rem" }}>
-          <label>
-            Fecha límite*{" "}
-            <input
-              type="datetime-local"
-              value={fechaLimite}
-              onChange={(e) => setFechaLimite(e.target.value)}
-              required
-            />
-          </label>
-        </div>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Creando..." : "Crear tarea"}
-        </button>
       </form>
     </div>
   );
