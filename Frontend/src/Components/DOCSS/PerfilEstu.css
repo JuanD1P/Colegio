@@ -1,0 +1,247 @@
+:root {
+  --estu-brand: #ec4899;         /* rosa principal */
+  --estu-brand-deep: #db2777;    /* rosa más oscuro */
+  --estu-soft: #ffe4f1;          /* rosa clarito */
+}
+
+/* ===== LAYOUT GENERAL ESTUDIANTE ===== */
+
+.estu-page {
+  position: relative;
+  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  font-family: "Nunito Sans", system-ui, -apple-system, Segoe UI, Roboto,
+    Arial, sans-serif;
+
+  background:
+    url("/ImagenFondos/fondo_est.jpg"),
+    radial-gradient(circle at top left, #fff5fb 0%, #ffe4f1 50%, #fdf2ff 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #111827;
+}
+
+.estu-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 55% at 15% 0%, rgba(244, 114, 182, 0.18) 0%, transparent 60%),
+    radial-gradient(60% 55% at 90% 90%, rgba(236, 72, 153, 0.16) 0%, transparent 65%),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.06), rgba(15, 23, 42, 0.02));
+}
+
+.estu-frame {
+  width: min(960px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== HEADER ===== */
+
+.estu-header {
+  border-radius: 24px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.estu-title {
+  margin: 0;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+.estu-subtitle {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.estu-headerBadge {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.estu-badge {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #fdf2ff, #ffffff);
+  border: 1px solid rgba(244, 114, 182, 0.6);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #9f1239;
+}
+
+/* ===== MAIN CARD ===== */
+
+.estu-main {
+  border-radius: 24px;
+  padding: 18px 20px 24px;
+}
+
+.estu-sectionTitle {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #0f172a;
+}
+
+.estu-sectionSub {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* Mensajes */
+
+.estu-error {
+  margin: 4px 0 8px;
+  font-size: 0.86rem;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.estu-ok {
+  margin: 4px 0 8px;
+  font-size: 0.86rem;
+  color: #166534;
+  font-weight: 700;
+}
+
+.estu-info {
+  margin: 4px 0 8px;
+  font-size: 0.86rem;
+  color: #6b7280;
+}
+
+/* ===== FORM ===== */
+
+.estu-form {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.estu-fieldRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.estu-field {
+  flex: 1 1 0;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.estu-field--sm {
+  max-width: 180px;
+}
+
+.estu-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #6b021a;
+}
+
+/* inputs y selects */
+
+.estu-field input,
+.estu-field select {
+  border-radius: 12px;
+  border: 1px solid rgba(248, 113, 181, 0.7);
+  padding: 8px 11px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  background: rgba(255, 247, 252, 0.96);
+  transition: border 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.estu-field input[type="date"] {
+  color-scheme: light;
+}
+
+.estu-field input:focus,
+.estu-field select:focus {
+  outline: none;
+  border-color: var(--estu-brand);
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.28);
+  background: #ffffff;
+}
+
+/* Acción */
+
+.estu-formActions {
+  margin-top: 6px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Botón principal rosa */
+
+.estu-btn {
+  border-radius: 9999px;
+  padding: 9px 20px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+    filter 0.18s ease;
+}
+
+.estu-btn--primary {
+  background: linear-gradient(135deg, var(--estu-brand), var(--estu-brand-deep));
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(236, 72, 153, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.estu-btn--primary:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.estu-btn--primary:active {
+  transform: translateY(0);
+  box-shadow: 0 7px 18px rgba(236, 72, 153, 0.35);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+  .estu-page {
+    padding: 12px;
+  }
+  .estu-header,
+  .estu-main {
+    padding: 14px 14px 18px;
+  }
+  .estu-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .estu-fieldRow {
+    flex-direction: column;
+  }
+}

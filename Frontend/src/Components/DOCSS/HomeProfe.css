@@ -14,7 +14,7 @@
   overflow-y: auto;
   box-sizing: border-box;
 
-  padding: 20px;
+  padding: 20px 20px 40px; 
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -581,4 +581,56 @@
   }
 }
 
+/* ===== FORM TAREA (PROFESOR) ===== */
 
+.profe-formTarea {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.4);
+}
+
+.profe-formTareaForm {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profe-formTareaField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.profe-formTareaField input,
+.profe-formTareaField textarea {
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 8px 10px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  background: rgba(248, 250, 252, 0.96);
+  transition: border var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+.profe-formTareaField textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.profe-formTareaField input:focus,
+.profe-formTareaField textarea:focus {
+  outline: none;
+  border-color: var(--brand-alt);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.22);
+  background: #ffffff;
+}
+
+.profe-formTareaActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}

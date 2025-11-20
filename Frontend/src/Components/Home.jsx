@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import FormMaterial from "./FormMaterial";
 import "./DOCSS/HomeProfe.css";
+import FormTarea from "./FormTarea";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -590,9 +591,7 @@ export default function Home() {
 
                   {/* Materiales */}
                   <div className="profe-block">
-                    <h3 className="profe-subsectionTitle">
-                      Materiales publicados
-                    </h3>
+                    <h3 className="profe-subsectionTitle">Materiales publicados</h3>
 
                     {loadingMateriales && (
                       <p className="profe-info">Cargando materiales...</p>
@@ -744,7 +743,7 @@ export default function Home() {
                   </div>
 
                   {/* Tareas del grupo */}
-                  <div className="profe-block">
+                  <div className="profe-block" id="profe-tareas-section">
                     <h3 className="profe-subsectionTitle">Tareas del grupo</h3>
 
                     {loadingTareas && (
@@ -888,6 +887,16 @@ export default function Home() {
                     )}
                   </div>
                 </section>
+              )}
+              {/* Formulario para crear nueva tarea */}
+              {grupoActual && (
+                <FormTarea
+                  cursoId={grupoActual.cursoId}
+                  grupoId={grupoActual.id}
+                  onCreated={(nueva) =>
+                    setTareas((prev) => [nueva, ...prev])
+                  }
+                />
               )}
             </>
           )}

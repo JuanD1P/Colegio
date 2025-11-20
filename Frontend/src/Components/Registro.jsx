@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./DOCSS/Registro.css";
-import logo from "../ImagenesP/ImagenesLogin/logo.png";
+import logo from "../ImagenesP/ImagenesLogin/logo_sinfondo.png";
 import bgHero from "/ImagenFondos/fondo.jpg";
 
 import {

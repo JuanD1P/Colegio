@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import "./DOCSS/PerfilEstu.css"; // 👈 nuevo CSS para el estilo rosado
 
 export default function Perfil() {
   const [user, setUser] = useState(null);
@@ -137,154 +138,205 @@ export default function Perfil() {
   const esEstudiante = rol === "ESTUDIANTE";
   const esProfesor = rol === "PROFESOR";
 
+  const badgeText = esEstudiante
+    ? "Perfil de estudiante"
+    : esProfesor
+    ? "Perfil de profesor"
+    : "Perfil";
+
   return (
-    <div className="container" style={{ maxWidth: 600, margin: "0 auto" }}>
-      <h1>Completa tu perfil</h1>
-      <p>
-        Necesitamos algunos datos adicionales para tu registro en el colegio.
-      </p>
+    <div className="estu-page">
+      <div className="estu-overlay" />
 
-      {loadingPerfil && <p>Cargando tus datos...</p>}
-
-      {error && (
-        <p style={{ color: "red", marginTop: "0.5rem" }}>{error}</p>
-      )}
-      {okMsg && (
-        <p style={{ color: "green", marginTop: "0.5rem" }}>{okMsg}</p>
-      )}
-
-      {!loadingPerfil && (
-        <form onSubmit={handleSubmit} style={{ marginTop: "1rem" }}>
-          <div className="field">
-            <label>Nombres</label>
-            <input
-              name="nombres"
-              value={form.nombres}
-              onChange={handleChange}
-              required
-            />
+      <div className="estu-frame">
+        {/* HEADER */}
+        <header className="estu-header glass-strong">
+          <div>
+            <h1 className="estu-title">
+              Hola, {user.nombre || user.nombres || "usuario"}
+            </h1>
+            <p className="estu-subtitle">
+              Completa tu perfil para aprovechar al máximo la plataforma.
+            </p>
           </div>
-
-          <div className="field">
-            <label>Apellidos</label>
-            <input
-              name="apellidos"
-              value={form.apellidos}
-              onChange={handleChange}
-              required
-            />
+          <div className="estu-headerBadge">
+            <span className="estu-badge">{badgeText}</span>
           </div>
+        </header>
 
-          <div className="field">
-            <label>Tipo de documento</label>
-            <select
-              name="tipoDoc"
-              value={form.tipoDoc}
-              onChange={handleChange}
-            >
-              <option value="CC">CC</option>
-              <option value="TI">TI</option>
-              <option value="CE">CE</option>
-              <option value="PA">Pasaporte</option>
-            </select>
-          </div>
+        {/* CONTENIDO */}
+        <main className="estu-main glass-strong">
+          <h2 className="estu-sectionTitle">Información personal</h2>
+          <p className="estu-sectionSub">
+            Estos datos se usan para tu registro académico y contacto con el
+            colegio.
+          </p>
 
-          <div className="field">
-            <label>Número de documento</label>
-            <input
-              name="documento"
-              value={form.documento}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="field">
-            <label>Teléfono</label>
-            <input
-              name="telefono"
-              value={form.telefono}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="field">
-            <label>Dirección</label>
-            <input
-              name="direccion"
-              value={form.direccion}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Campos típicos de estudiante */}
-          {esEstudiante && (
-            <>
-              <div className="field">
-                <label>Grado</label>
-                <input
-                  name="grado"
-                  value={form.grado}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="field">
-                <label>Sección</label>
-                <input
-                  name="seccion"
-                  value={form.seccion}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="field">
-                <label>Fecha de nacimiento</label>
-                <input
-                  type="date"
-                  name="fechaNac"
-                  value={form.fechaNac}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="field">
-                <label>Nombre acudiente</label>
-                <input
-                  name="acudienteNombre"
-                  value={form.acudienteNombre}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="field">
-                <label>Teléfono acudiente</label>
-                <input
-                  name="acudienteTelefono"
-                  value={form.acudienteTelefono}
-                  onChange={handleChange}
-                />
-              </div>
-            </>
+          {loadingPerfil && (
+            <p className="estu-info">Cargando tus datos...</p>
           )}
 
-          {/* Campo típico de profesor */}
-          {esProfesor && (
-            <div className="field">
-              <label>Título académico</label>
-              <input
-                name="tituloAcademico"
-                value={form.tituloAcademico}
-                onChange={handleChange}
-              />
-            </div>
-          )}
+          {error && <p className="estu-error">{error}</p>}
+          {okMsg && <p className="estu-ok">{okMsg}</p>}
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Guardando..." : "Guardar perfil"}
-          </button>
-        </form>
-      )}
+          {!loadingPerfil && (
+            <form onSubmit={handleSubmit} className="estu-form">
+              {/* Nombres / Apellidos */}
+              <div className="estu-fieldRow">
+                <div className="estu-field">
+                  <label className="estu-label">Nombres</label>
+                  <input
+                    name="nombres"
+                    value={form.nombres}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="estu-field">
+                  <label className="estu-label">Apellidos</label>
+                  <input
+                    name="apellidos"
+                    value={form.apellidos}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Tipo doc / Documento */}
+              <div className="estu-fieldRow">
+                <div className="estu-field estu-field--sm">
+                  <label className="estu-label">Tipo de documento</label>
+                  <select
+                    name="tipoDoc"
+                    value={form.tipoDoc}
+                    onChange={handleChange}
+                  >
+                    <option value="CC">CC</option>
+                    <option value="TI">TI</option>
+                    <option value="CE">CE</option>
+                    <option value="PA">Pasaporte</option>
+                  </select>
+                </div>
+
+                <div className="estu-field">
+                  <label className="estu-label">Número de documento</label>
+                  <input
+                    name="documento"
+                    value={form.documento}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Teléfono / Dirección */}
+              <div className="estu-fieldRow">
+                <div className="estu-field">
+                  <label className="estu-label">Teléfono</label>
+                  <input
+                    name="telefono"
+                    value={form.telefono}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="estu-field">
+                  <label className="estu-label">Dirección</label>
+                  <input
+                    name="direccion"
+                    value={form.direccion}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              {/* Campos típicos de estudiante */}
+              {esEstudiante && (
+                <>
+                  <div className="estu-fieldRow">
+                    <div className="estu-field">
+                      <label className="estu-label">Grado</label>
+                      <input
+                        name="grado"
+                        value={form.grado}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    <div className="estu-field">
+                      <label className="estu-label">Sección</label>
+                      <input
+                        name="seccion"
+                        value={form.seccion}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="estu-fieldRow">
+                    <div className="estu-field">
+                      <label className="estu-label">Fecha de nacimiento</label>
+                      <input
+                        type="date"
+                        name="fechaNac"
+                        value={form.fechaNac}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="estu-field" />
+                  </div>
+
+                  <div className="estu-fieldRow">
+                    <div className="estu-field">
+                      <label className="estu-label">Nombre acudiente</label>
+                      <input
+                        name="acudienteNombre"
+                        value={form.acudienteNombre}
+                        onChange={handleChange}
+                      />
+                    </div>
+
+                    <div className="estu-field">
+                      <label className="estu-label">Teléfono acudiente</label>
+                      <input
+                        name="acudienteTelefono"
+                        value={form.acudienteTelefono}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Campo típico de profesor */}
+              {esProfesor && (
+                <div className="estu-fieldRow">
+                  <div className="estu-field">
+                    <label className="estu-label">Título académico</label>
+                    <input
+                      name="tituloAcademico"
+                      value={form.tituloAcademico}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="estu-formActions">
+                <button
+                  type="submit"
+                  className="estu-btn estu-btn--primary"
+                  disabled={loading}
+                >
+                  {loading ? "Guardando..." : "Guardar perfil"}
+                </button>
+              </div>
+            </form>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

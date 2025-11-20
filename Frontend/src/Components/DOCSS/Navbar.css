@@ -1,0 +1,192 @@
+:root {
+  --brand-fucsia: #f30a88;
+  --brand-fucsia-soft: #ffe4f4;
+  --brand-fucsia-deep: #be185d;
+
+  --brand-profe: #2563eb;
+  --brand-profe-deep: #1d4ed8;
+
+  --ink-900: #0f172a;
+}
+
+/* Contenedor principal de la navbar */
+.nav-root {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+/* Versión profesor (glass azul muy clarito) */
+.nav-root--profe {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.96),
+    rgba(219, 234, 254, 0.97)
+  );
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+}
+
+/* Versión estudiante (glass rosado suave) */
+.nav-root--estu {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.96),
+    rgba(255, 228, 247, 0.98)
+  );
+  box-shadow: 0 12px 30px rgba(190, 24, 93, 0.16);
+}
+
+.nav-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Logo */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.nav-logoImgWrapper {
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 20%, #ffffff, #e5edff);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.nav-logoImgWrapper img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.nav-logoTextBlock {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.nav-logoTitle {
+  font-weight: 900;
+  font-size: 0.98rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-900);
+}
+
+.nav-logoSubtitle {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+/* Links centrales */
+.nav-links {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.nav-link {
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.35);
+  transition: transform 0.16s ease, box-shadow 0.16s ease,
+    background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.nav-link:hover {
+  background: #ffffff;
+  border-color: rgba(129, 140, 248, 0.8);
+  box-shadow: 0 12px 26px rgba(129, 140, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Activo (se usa más para el estudiante) */
+.nav-link--active {
+  background: linear-gradient(
+    135deg,
+    var(--brand-fucsia-soft),
+    #ffffff
+  );
+  border-color: rgba(236, 72, 153, 0.7);
+  box-shadow: 0 10px 22px rgba(236, 72, 153, 0.4);
+  color: #9d174d;
+}
+
+/* Lado derecho */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-user {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0f172a;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.45);
+}
+
+/* Botón cerrar sesión */
+.nav-logout {
+  border-radius: 9999px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid rgba(248, 113, 113, 0.7);
+  background: #fef2f2;
+  color: #b91c1c;
+  cursor: pointer;
+  transition: background 0.16s ease, transform 0.16s ease,
+    box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.nav-logout:hover {
+  background: #fee2e2;
+  border-color: rgba(239, 68, 68, 0.9);
+  box-shadow: 0 10px 22px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .nav-inner {
+    padding-inline: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .nav-links {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
