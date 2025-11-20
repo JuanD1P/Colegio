@@ -12,6 +12,9 @@ import { gruposR } from './Routes/gruposR.js';
 import { cursosR } from './Routes/cursosR.js';
 import { matriculasR } from './Routes/matriculasR.js';
 import { materialesR } from "./Routes/materialesR.js";
+import { tareasR } from "./Routes/tareasR.js";
+import { entregasR } from "./Routes/entregasR.js";
+
 
 const app = express();
 
@@ -126,6 +129,8 @@ app.use('/api', requireAuth, gruposR);
 app.use('/api/cursos', cursosR);
 app.use('/api', requireAuth, matriculasR);
 app.use("/api", materialesR);
+app.use("/api", tareasR);
+app.use("/api", entregasR);
 
 // Healthcheck opcional
 app.get('/healthz', (_req, res) => res.json({ ok: true }));
