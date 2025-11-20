@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
 import FormMaterial from "./FormMaterial";
-import FormTarea from "./FormTarea";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -39,12 +38,7 @@ export default function Home() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
-  // Edición de notas de entregas
-  const [notaEdit, setNotaEdit] = useState({}); // { entregaId: "90" }
-  const [comentarioEdit, setComentarioEdit] = useState({}); // { entregaId: "Buen trabajo" }
-  const [savingNotaId, setSavingNotaId] = useState(null);
-
-  // helper para formatear fecha de Firestore o Date/ISO
+  // helper para formatear fecha de Firestore
   const formatFecha = (ts) => {
     if (!ts) return "";
     try {
@@ -67,7 +61,6 @@ export default function Home() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        console.log("User desde localStorage:", parsed);
         setUser(parsed);
       } catch (e) {
         console.error("Error parseando usuario de localStorage", e);
@@ -85,14 +78,11 @@ export default function Home() {
       try {
         setLoadingGruposProfe(true);
         setError("");
-        console.log("GET /api/profesores/:id/grupos con id =", user.id);
 
         const res = await api.get(`/api/profesores/${user.id}/grupos`);
         const grupos = res.data || [];
-        console.log("Grupos del profesor:", grupos);
         setGruposProfe(grupos);
 
-        // Derivar cursos únicos desde esos grupos
         const mapCursos = new Map();
         grupos.forEach((g) => {
           if (!g.cursoId) return;
@@ -129,7 +119,7 @@ export default function Home() {
     cargarGruposProfe();
   }, [user]);
 
-  // 3) Cuando se elige un curso, filtrar grupos de ese curso
+  // 3) Filtrar grupos por curso
   useEffect(() => {
     if (!cursoSel) {
       setGruposFiltrados([]);
@@ -150,7 +140,7 @@ export default function Home() {
     setTareas([]);
   }, [cursoSel, gruposProfe]);
 
-  // 4) Cuando se elige grupo, cargar alumnos, materiales y tareas de ese grupo
+  // 4) Cuando se elige grupo, cargar alumnos y materiales de ese grupo
   useEffect(() => {
     if (!grupoSel) {
       setGrupoActual(null);
@@ -167,7 +157,6 @@ export default function Home() {
       try {
         setLoadingAlumnos(true);
         setError("");
-        console.log("GET /api/grupos/:id/alumnos con id =", grupoSel);
 
         const res = await api.get(`/api/grupos/${grupoSel}/alumnos`);
         setAlumnos(res.data || []);
@@ -414,50 +403,64 @@ export default function Home() {
   }
 
   return (
-    <div
-      className="container"
-      style={{
-        maxHeight: "calc(100vh - 120px)", // deja espacio para navbar/footer
-        overflowY: "auto",
-        paddingBottom: "2rem",
-      }}
-    >
-      <h1>Bienvenido, {user.nombre || "profesor"}</h1>
-      <h2>Mis grupos y cursos</h2>
+    <div className="profe-page">
+      <div className="profe-overlay" />
 
-      {error && (
-        <p style={{ color: "red", marginTop: "0.5rem" }}>{error}</p>
-      )}
-
-      {loadingGruposProfe && <p>Cargando tus grupos...</p>}
-
-      {!loadingGruposProfe && gruposProfe.length === 0 && (
-        <p>
-          No estás asignado a ningún grupo todavía. Cuando el administrador te
-          asigne grupos, los verás aquí.
-        </p>
-      )}
-
-      {/* SOLO mostramos selects si el profe tiene al menos un grupo */}
-      {!loadingGruposProfe && gruposProfe.length > 0 && (
-        <>
-          {/* Selección de curso */}
-          <div style={{ margin: "1rem 0" }}>
-            <label>
-              Curso:&nbsp;
-              <select
-                value={cursoSel}
-                onChange={(e) => setCursoSel(e.target.value)}
-              >
-                <option value="">-- Selecciona un curso --</option>
-                {cursos.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
+      <div className="profe-frame">
+        {/* HEADER */}
+        <header className="profe-header glass-strong">
+          <div>
+            <h1 className="profe-title">
+              Hola, {user.nombre || "profesor"}
+            </h1>
+            <p className="profe-subtitle">
+              Gestiona tus cursos, grupos y materiales desde aquí.
+            </p>
           </div>
+
+          <div className="profe-headerBadge">
+            <span className="profe-badge">Panel de Profesor</span>
+          </div>
+        </header>
+
+        {/* CONTENIDO PRINCIPAL */}
+        <main className="profe-main glass-strong">
+          {error && <p className="profe-error">{error}</p>}
+
+          {loadingGruposProfe && (
+            <p className="profe-info">Cargando tus grupos...</p>
+          )}
+
+          {!loadingGruposProfe && gruposProfe.length === 0 && (
+            <p className="profe-info">
+              No estás asignado a ningún grupo todavía. Cuando el administrador
+              te asigne grupos, los verás aquí.
+            </p>
+          )}
+
+          {!loadingGruposProfe && gruposProfe.length > 0 && (
+            <>
+              {/* Selecciones */}
+              <section className="profe-section">
+                <h2 className="profe-sectionTitle">Mis cursos y grupos</h2>
+
+                <div className="profe-row">
+                  <div className="profe-field">
+                    <span className="profe-label">Curso</span>
+                    <select
+                      className="profe-select"
+                      value={cursoSel}
+                      onChange={(e) => setCursoSel(e.target.value)}
+                    >
+                      <option value="">Selecciona un curso</option>
+                      {cursos.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
           {/* Selección de grupo */}
           {cursoSel && (
@@ -483,7 +486,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Detalle de grupo: horario + alumnos + materiales + tareas */}
+          {/* Detalle de grupo: horario + alumnos + materiales */}
           {grupoActual && (
             <div style={{ marginTop: "1.5rem" }}>
               <h3>Grupo: {grupoActual.nombre}</h3>
@@ -494,173 +497,210 @@ export default function Home() {
                 )}
               </p>
 
-              {/* Horario */}
-              <h4>Horario y aulas</h4>
-              {Array.isArray(grupoActual.horario) &&
-              grupoActual.horario.length > 0 ? (
-                <ul>
-                  {grupoActual.horario.map((h, idx) => (
-                    <li key={idx}>
-                      Aula {h.aula || "N/D"} – Día {h.dia} – {h.inicio} a{" "}
-                      {h.fin}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p>Este grupo no tiene horario registrado.</p>
-              )}
+                  {/* Horario */}
+                  <div className="profe-block">
+                    <h3 className="profe-subsectionTitle">
+                      Horario y aulas
+                    </h3>
+                    {Array.isArray(grupoActual.horario) &&
+                    grupoActual.horario.length > 0 ? (
+                      <ul className="profe-list">
+                        {grupoActual.horario.map((h, idx) => (
+                          <li key={idx} className="profe-listItem">
+                            <span>
+                              Aula <strong>{h.aula || "N/D"}</strong>
+                            </span>
+                            <span>
+                              Día {h.dia} · {h.inicio} – {h.fin}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="profe-info">
+                        Este grupo no tiene horario registrado.
+                      </p>
+                    )}
+                  </div>
 
-              {/* Alumnos */}
-              <h4>Alumnos matriculados</h4>
-              {loadingAlumnos && <p>Cargando alumnos...</p>}
+                  {/* Alumnos */}
+                  <div className="profe-block">
+                    <h3 className="profe-subsectionTitle">
+                      Alumnos matriculados
+                    </h3>
 
-              {!loadingAlumnos && alumnos.length === 0 && (
-                <p>No hay alumnos matriculados en este grupo.</p>
-              )}
+                    {loadingAlumnos && (
+                      <p className="profe-info">Cargando alumnos...</p>
+                    )}
 
-              {!loadingAlumnos && alumnos.length > 0 && (
-                <ul>
-                  {alumnos.map((al) => (
-                    <li key={al.id}>
-                      {al.nombre} – {al.email}
-                      {al.documento && <> – Doc: {al.documento}</>}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                    {!loadingAlumnos && alumnos.length === 0 && (
+                      <p className="profe-info">
+                        No hay alumnos matriculados en este grupo.
+                      </p>
+                    )}
 
-              {/* Materiales */}
-              <h4>Materiales publicados</h4>
-              {loadingMateriales && <p>Cargando materiales...</p>}
-
-              {!loadingMateriales && materiales.length === 0 && (
-                <p>No hay materiales publicados para este grupo.</p>
-              )}
-
-              {!loadingMateriales && materiales.length > 0 && (
-                <ul>
-                  {materiales.map((m) => (
-                    <li key={m.id} style={{ marginBottom: "0.75rem" }}>
-                      {editId === m.id ? (
-                        // ----- MODO EDICIÓN -----
-                        <div
-                          style={{
-                            border: "1px solid #ccc",
-                            padding: "0.5rem",
-                            borderRadius: "4px",
-                          }}
-                        >
-                          <div>
-                            <label>
-                              Título:
-                              <input
-                                type="text"
-                                value={editTitulo}
-                                onChange={(e) =>
-                                  setEditTitulo(e.target.value)
-                                }
-                                style={{ width: "100%" }}
-                              />
-                            </label>
-                          </div>
-                          <div>
-                            <label>
-                              Descripción:
-                              <textarea
-                                value={editDescripcion}
-                                onChange={(e) =>
-                                  setEditDescripcion(e.target.value)
-                                }
-                                style={{ width: "100%", minHeight: "60px" }}
-                              />
-                            </label>
-                          </div>
-                          <div>
-                            <label>
-                              Enlace:
-                              <input
-                                type="url"
-                                value={editEnlace}
-                                onChange={(e) =>
-                                  setEditEnlace(e.target.value)
-                                }
-                                style={{ width: "100%" }}
-                              />
-                            </label>
-                          </div>
-                          <div style={{ marginTop: "0.5rem" }}>
-                            <button
-                              type="button"
-                              onClick={saveEdit}
-                              disabled={savingEdit}
-                            >
-                              {savingEdit ? "Guardando..." : "Guardar"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={cancelEdit}
-                              style={{ marginLeft: "0.5rem" }}
-                              disabled={savingEdit}
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        // ----- MODO LECTURA -----
-                        <div>
-                          <strong>{m.titulo}</strong>{" "}
-                          <small>{formatFecha(m.createdAt)}</small>
-                          {m.descripcion && <div>{m.descripcion}</div>}
-                          {m.archivoUrl && (
-                            <div>
-                              Archivo:{" "}
-                              <a
-                                href={m.archivoUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {m.archivoNombre || "Descargar"}
-                              </a>
+                    {!loadingAlumnos && alumnos.length > 0 && (
+                      <ul className="profe-list">
+                        {alumnos.map((al) => (
+                          <li key={al.id} className="profe-listItem">
+                            <div className="profe-listMain">
+                              <strong>{al.nombre}</strong>
+                              <span className="profe-listSecondary">
+                                {al.email}
+                              </span>
                             </div>
-                          )}
-                          {m.enlace && (
-                            <div>
-                              Enlace:{" "}
-                              <a
-                                href={m.enlace}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {m.enlace}
-                              </a>
-                            </div>
-                          )}
+                            {al.documento && (
+                              <span className="profe-chip">
+                                Doc: {al.documento}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
 
-                          <div style={{ marginTop: "0.25rem" }}>
-                            <button
-                              type="button"
-                              onClick={() => startEdit(m)}
-                              style={{ marginRight: "0.5rem" }}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteMaterial(m)}
-                              disabled={deletingId === m.id}
-                            >
-                              {deletingId === m.id
-                                ? "Eliminando..."
-                                : "Eliminar"}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                  {/* Materiales */}
+                  <div className="profe-block">
+                    <h3 className="profe-subsectionTitle">
+                      Materiales publicados
+                    </h3>
+
+                    {loadingMateriales && (
+                      <p className="profe-info">Cargando materiales...</p>
+                    )}
+
+                    {!loadingMateriales && materiales.length === 0 && (
+                      <p className="profe-info">
+                        No hay materiales publicados para este grupo.
+                      </p>
+                    )}
+
+                    {!loadingMateriales && materiales.length > 0 && (
+                      <ul className="profe-materialList">
+                        {materiales.map((m) => (
+                          <li key={m.id} className="profe-materialItem">
+                            {editId === m.id ? (
+                              <div className="profe-materialEdit">
+                                <label className="profe-editField">
+                                  <span>Título</span>
+                                  <input
+                                    type="text"
+                                    value={editTitulo}
+                                    onChange={(e) =>
+                                      setEditTitulo(e.target.value)
+                                    }
+                                  />
+                                </label>
+
+                                <label className="profe-editField">
+                                  <span>Descripción</span>
+                                  <textarea
+                                    value={editDescripcion}
+                                    onChange={(e) =>
+                                      setEditDescripcion(e.target.value)
+                                    }
+                                  />
+                                </label>
+
+                                <label className="profe-editField">
+                                  <span>Enlace</span>
+                                  <input
+                                    type="url"
+                                    value={editEnlace}
+                                    onChange={(e) =>
+                                      setEditEnlace(e.target.value)
+                                    }
+                                  />
+                                </label>
+
+                                <div className="profe-editActions">
+                                  <button
+                                    type="button"
+                                    className="profe-btn profe-btn--primary"
+                                    onClick={saveEdit}
+                                    disabled={savingEdit}
+                                  >
+                                    {savingEdit ? "Guardando..." : "Guardar"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="profe-btn profe-btn--ghost"
+                                    onClick={cancelEdit}
+                                    disabled={savingEdit}
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="profe-materialView">
+                                <div className="profe-materialHeader">
+                                  <div>
+                                    <strong>{m.titulo}</strong>
+                                    <small>
+                                      {formatFecha(m.createdAt)}
+                                    </small>
+                                  </div>
+                                </div>
+
+                                {m.descripcion && (
+                                  <p className="profe-materialDesc">
+                                    {m.descripcion}
+                                  </p>
+                                )}
+
+                                {m.archivoUrl && (
+                                  <p className="profe-materialLink">
+                                    Archivo:&nbsp;
+                                    <a
+                                      href={m.archivoUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {m.archivoNombre || "Descargar"}
+                                    </a>
+                                  </p>
+                                )}
+
+                                {m.enlace && (
+                                  <p className="profe-materialLink">
+                                    Enlace:&nbsp;
+                                    <a
+                                      href={m.enlace}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {m.enlace}
+                                    </a>
+                                  </p>
+                                )}
+
+                                <div className="profe-editActions">
+                                  <button
+                                    type="button"
+                                    className="profe-btn profe-btn--ghost"
+                                    onClick={() => startEdit(m)}
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="profe-btn profe-btn--danger"
+                                    onClick={() => deleteMaterial(m)}
+                                    disabled={deletingId === m.id}
+                                  >
+                                    {deletingId === m.id
+                                      ? "Eliminando..."
+                                      : "Eliminar"}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
 
               {/* Formulario para publicar nuevo material */}
               <FormMaterial
@@ -669,218 +709,6 @@ export default function Home() {
                 onUploaded={(nuevo) =>
                   setMateriales((prev) => [nuevo, ...prev])
                 }
-              />
-
-              {/* Tareas */}
-              <h4 style={{ marginTop: "2rem" }}>Tareas del grupo</h4>
-
-              {loadingTareas && <p>Cargando tareas...</p>}
-
-              {!loadingTareas && tareas.length === 0 && (
-                <p>No hay tareas creadas para este grupo.</p>
-              )}
-
-              {!loadingTareas && tareas.length > 0 && (
-                <ul>
-                  {tareas.map((t) => {
-                    let fechaStr = "";
-                    try {
-                      const f = t.fechaLimite?.toDate
-                        ? t.fechaLimite.toDate()
-                        : new Date(t.fechaLimite);
-                      fechaStr = f.toLocaleString();
-                    } catch {
-                      fechaStr = "";
-                    }
-
-                    const colorEstado =
-                      t.estado === "expirada" ? "red" : "green";
-
-                    return (
-                      <li key={t.id} style={{ marginBottom: "0.75rem" }}>
-                        <strong>{t.titulo}</strong>{" "}
-                        <span style={{ color: colorEstado }}>
-                          [{t.estado === "expirada" ? "Expirada" : "Activa"}]
-                        </span>
-                        <div>{t.descripcion}</div>
-                        <small>Fecha límite: {fechaStr}</small>
-
-                        <div style={{ marginTop: "0.5rem" }}>
-                          <button
-                            type="button"
-                            onClick={() => toggleEntregas(t.id)}
-                          >
-                            {t.mostrarEntregas
-                              ? "Ocultar entregas"
-                              : "Ver entregas"}
-                          </button>
-                        </div>
-
-                        {/* Entregas de la tarea */}
-                        {t.mostrarEntregas && (
-                          <div
-                            style={{
-                              marginTop: "0.5rem",
-                              marginLeft: "1rem",
-                              borderLeft: "2px solid #ccc",
-                              paddingLeft: "0.75rem",
-                            }}
-                          >
-                            {t.cargandoEntregas && (
-                              <p>Cargando entregas...</p>
-                            )}
-
-                            {!t.cargandoEntregas &&
-                              (!t.entregas || t.entregas.length === 0) && (
-                                <p>No hay entregas registradas.</p>
-                              )}
-
-                            {!t.cargandoEntregas &&
-                              t.entregas &&
-                              t.entregas.length > 0 && (
-                                <ul>
-                                  {t.entregas.map((e) => {
-                                    const nombreMostrado =
-                                      e.alumnoNombre ||
-                                      e.alumnoEmail ||
-                                      e.alumnoId;
-                                    const fechaEntrega =
-                                      e.entregadaEn || e.createdAt;
-
-                                    return (
-                                      <li
-                                        key={e.id}
-                                        style={{ marginBottom: "0.75rem" }}
-                                      >
-                                        <strong>{nombreMostrado}</strong>
-                                        {e.alumnoEmail && (
-                                          <> — {e.alumnoEmail}</>
-                                        )}
-                                        <div>
-                                          Entregada:{" "}
-                                          {formatFecha(fechaEntrega)}
-                                        </div>
-                                        {e.archivoUrl && (
-                                          <div>
-                                            Archivo:{" "}
-                                            <a
-                                              href={e.archivoUrl}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                            >
-                                              {e.archivoNombre ||
-                                                "Descargar"}
-                                            </a>
-                                          </div>
-                                        )}
-                                        {e.enlace && (
-                                          <div>
-                                            Enlace:{" "}
-                                            <a
-                                              href={e.enlace}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                            >
-                                              {e.enlace}
-                                            </a>
-                                          </div>
-                                        )}
-
-                                        {/* Nota y comentario */}
-                                        <div
-                                          style={{
-                                            marginTop: "0.35rem",
-                                            padding: "0.35rem 0.5rem",
-                                            background: "#f7f7f7",
-                                            borderRadius: 4,
-                                          }}
-                                        >
-                                          <div>
-                                            <label>
-                                              Nota (0–100):{" "}
-                                              <input
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                value={
-                                                  notaEdit[e.id] ??
-                                                  (e.nota != null
-                                                    ? String(e.nota)
-                                                    : "")
-                                                }
-                                                onChange={(ev) =>
-                                                  setNotaEdit((prev) => ({
-                                                    ...prev,
-                                                    [e.id]: ev.target.value,
-                                                  }))
-                                                }
-                                                style={{ width: "80px" }}
-                                              />
-                                            </label>
-                                            {e.nota != null && (
-                                              <span
-                                                style={{
-                                                  marginLeft: "0.5rem",
-                                                  fontSize: "0.9rem",
-                                                  opacity: 0.7,
-                                                }}
-                                              >
-                                                (actual: {e.nota})
-                                              </span>
-                                            )}
-                                          </div>
-                                          <div style={{ marginTop: "0.25rem" }}>
-                                            <label>
-                                              Comentario:
-                                              <textarea
-                                                value={
-                                                  comentarioEdit[e.id] ??
-                                                  e.comentario ??
-                                                  ""
-                                                }
-                                                onChange={(ev) =>
-                                                  setComentarioEdit((prev) => ({
-                                                    ...prev,
-                                                    [e.id]: ev.target.value,
-                                                  }))
-                                                }
-                                                style={{
-                                                  width: "100%",
-                                                  minHeight: "50px",
-                                                }}
-                                              />
-                                            </label>
-                                          </div>
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              guardarNotaEntrega(e.id, t.id)
-                                            }
-                                            disabled={savingNotaId === e.id}
-                                          >
-                                            {savingNotaId === e.id
-                                              ? "Guardando..."
-                                              : "Guardar nota"}
-                                          </button>
-                                        </div>
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              )}
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-
-              {/* Formulario para crear nueva tarea */}
-              <FormTarea
-                cursoId={grupoActual.cursoId}
-                grupoId={grupoActual.id}
-                onCreated={(nueva) => setTareas((prev) => [...prev, nueva])}
               />
             </div>
           )}
