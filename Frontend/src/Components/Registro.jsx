@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./DOCSS/Registro.css";
-import logo from "../ImagenesP/ImagenesLogin/ByteTools.png";
-import bgHero from "/ImagenFondos/fondo.png";
+import logo from "../ImagenesP/ImagenesLogin/logo.png";
+import bgHero from "/ImagenFondos/fondo.jpg";
 
 import {
   createUserWithEmailAndPassword,
@@ -201,7 +201,7 @@ export default function Registro() {
 
       <section className="login-left">
         <header className="login-header">
-          <img src={logo} alt="FlowUp" className="login-logo" />
+          <img src={logo} alt="Educa" className="login-logo" />
         </header>
 
         <div className="left-body">
@@ -339,8 +339,8 @@ export default function Registro() {
         style={{ backgroundImage: `url(${bgHero})` }}
       >
         <div className="login-text">
-          <h2>Comunicacion de datos.</h2>
-          <p>Proyecto VI Semestre</p>
+          <h2>Educar es sembrar futuro</h2>
+          <p>Nutriendo el conocimiento</p>
         </div>
       </aside>
     </div>
