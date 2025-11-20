@@ -54,6 +54,7 @@ materialesR.post(
       let archivoUrl = null;
       let archivoNombre = null;
       let archivoTipo = null;
+      let archivoPath = null; // para poder borrarlo luego
 
       // ── Subir archivo a Supabase si viene ─────────────────
       if (archivo) {
@@ -63,11 +64,13 @@ materialesR.post(
         // ruta dentro del bucket: cursoId/grupoId/timestamp_nombre
         const ts = Date.now();
         const safeNombre = archivoNombre.replace(/\s+/g, "_");
-        const path = `${cursoId || "general"}/${grupoId || "sin-grupo"}/${ts}_${safeNombre}`;
+        archivoPath = `${
+          cursoId || "general"
+        }/${grupoId || "sin-grupo"}/${ts}_${safeNombre}`;
 
         const { data, error: uploadError } = await supabase.storage
           .from(BUCKET)
-          .upload(path, archivo.buffer, {
+          .upload(archivoPath, archivo.buffer, {
             contentType: archivoTipo,
             upsert: false,
           });
@@ -99,6 +102,7 @@ materialesR.post(
         archivoUrl,
         archivoNombre,
         archivoTipo,
+        archivoPath, // para poder borrar el archivo del bucket
         profesorId: uid,
         createdAt: now,
         updatedAt: now,
@@ -120,7 +124,7 @@ materialesR.post(
  *  - cursoId (optional)
  *  - grupoId (optional)
  *
- * Lista ordenada por fecha desc.
+ * Lista filtrada por curso y/o grupo.
  */
 materialesR.get(
   "/materiales",
@@ -131,26 +135,58 @@ materialesR.get(
 
       let ref = firestoreAdmin.collection("materiales");
 
-      if (cursoId) {
-        ref = ref.where("cursoId", "==", cursoId);
-      }
       if (grupoId) {
         ref = ref.where("grupoId", "==", grupoId);
       }
+      if (cursoId) {
+        ref = ref.where("cursoId", "==", cursoId);
+      }
 
-      // ordenamos por fecha de publicación
-      ref = ref.orderBy("createdAt", "desc");
-
+      // SIN orderBy en Firestore para evitar problemas de índices compuestos.
       const snap = await ref.get();
-      const materiales = snap.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }));
+
+      const materiales = snap.docs.map((d) => {
+        const data = d.data() || {};
+        const ts = data.createdAt;
+
+        let createdAt = null;
+        if (ts) {
+          if (typeof ts?.toDate === "function") {
+            createdAt = ts.toDate().toISOString();
+          } else if (ts._seconds || ts.seconds) {
+            const secs = ts._seconds ?? ts.seconds;
+            createdAt = new Date(secs * 1000).toISOString();
+          } else {
+            createdAt = ts; // string o number
+          }
+        }
+
+        return {
+          id: d.id,
+          titulo: data.titulo || "",
+          descripcion: data.descripcion || "",
+          enlace: data.enlace || "",
+          archivoUrl: data.archivoUrl || "",
+          archivoNombre: data.archivoNombre || "",
+          archivoTipo: data.archivoTipo || "",
+          cursoId: data.cursoId || null,
+          grupoId: data.grupoId || null,
+          profesorId: data.profesorId || null,
+          createdAt,
+        };
+      });
+
+      // Ordenamos del más nuevo al más viejo en memoria
+      materiales.sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
 
       res.json(materiales);
     } catch (e) {
       console.error("GET /api/materiales error:", e);
-      res.status(500).json({ error: "Error al listar materiales." });
+      res
+        .status(500)
+        .json({ error: e?.message || "Error al listar materiales." });
     }
   }
 );
@@ -221,9 +257,7 @@ materialesR.delete(
       const archivoPath = data.archivoPath;
       if (archivoPath) {
         try {
-          await supabase.storage
-            .from(process.env.SUPABASE_BUCKET)
-            .remove([archivoPath]);
+          await supabase.storage.from(BUCKET).remove([archivoPath]);
         } catch (e) {
           console.warn("No se pudo borrar archivo de Supabase:", e?.message);
         }
