@@ -1,23 +1,58 @@
 // src/Components/Home.jsx
 import React, { useEffect, useState } from "react";
 import api from "../api/axios";
+import FormMaterial from "./FormMaterial";
 
 export default function Home() {
   const [user, setUser] = useState(null);
 
-  const [gruposProfe, setGruposProfe] = useState([]); // TODOS los grupos donde es profesor
-  const [cursos, setCursos] = useState([]);           // cursos únicos derivados de esos grupos
+  // Grupos del profesor
+  const [gruposProfe, setGruposProfe] = useState([]);
+  const [cursos, setCursos] = useState([]);
 
   const [cursoSel, setCursoSel] = useState("");
   const [gruposFiltrados, setGruposFiltrados] = useState([]);
   const [grupoSel, setGrupoSel] = useState("");
   const [grupoActual, setGrupoActual] = useState(null);
 
+  // Alumnos del grupo
   const [alumnos, setAlumnos] = useState([]);
+
+  // Materiales del grupo
+  const [materiales, setMateriales] = useState([]);
+  const [loadingMateriales, setLoadingMateriales] = useState(false);
 
   const [loadingGruposProfe, setLoadingGruposProfe] = useState(false);
   const [loadingAlumnos, setLoadingAlumnos] = useState(false);
   const [error, setError] = useState("");
+
+  // Edición de materiales
+  const [editId, setEditId] = useState(null);
+  const [editTitulo, setEditTitulo] = useState("");
+  const [editDescripcion, setEditDescripcion] = useState("");
+  const [editEnlace, setEditEnlace] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
+  // helper para formatear fecha de Firestore
+  const formatFecha = (ts) => {
+    if (!ts) return "";
+    try {
+      // si viene como Timestamp de Firestore
+      if (typeof ts.toDate === "function") {
+        return ts.toDate().toLocaleString();
+      }
+      // si viene como {_seconds, _nanoseconds}
+      if (ts._seconds || ts.seconds) {
+        const secs = ts._seconds ?? ts.seconds;
+        return new Date(secs * 1000).toLocaleString();
+      }
+      // si viene como string o number
+      return new Date(ts).toLocaleString();
+    } catch {
+      return "";
+    }
+  };
 
   // 1) Leer user desde localStorage
   useEffect(() => {
@@ -68,6 +103,7 @@ export default function Home() {
         setGrupoSel("");
         setGrupoActual(null);
         setAlumnos([]);
+        setMateriales([]);
       } catch (err) {
         console.error(
           "Error cargando grupos del profesor:",
@@ -92,6 +128,7 @@ export default function Home() {
       setGrupoSel("");
       setGrupoActual(null);
       setAlumnos([]);
+      setMateriales([]);
       return;
     }
 
@@ -100,13 +137,15 @@ export default function Home() {
     setGrupoSel("");
     setGrupoActual(null);
     setAlumnos([]);
+    setMateriales([]);
   }, [cursoSel, gruposProfe]);
 
-  // 4) Cuando se elige grupo, cargar alumnos de ese grupo
+  // 4) Cuando se elige grupo, cargar alumnos y materiales de ese grupo
   useEffect(() => {
     if (!grupoSel) {
       setGrupoActual(null);
       setAlumnos([]);
+      setMateriales([]);
       return;
     }
 
@@ -131,8 +170,97 @@ export default function Home() {
       }
     };
 
+    const cargarMateriales = async () => {
+      try {
+        setLoadingMateriales(true);
+        const res = await api.get("/api/materiales", {
+          params: { grupoId: grupoSel },
+        });
+        setMateriales(res.data || []);
+      } catch (err) {
+        console.error(
+          "Error cargando materiales:",
+          err.response?.data || err
+        );
+      } finally {
+        setLoadingMateriales(false);
+      }
+    };
+
     cargarAlumnos();
+    cargarMateriales();
   }, [grupoSel, gruposFiltrados]);
+
+  // ───────── Acciones de materiales ─────────
+
+  const startEdit = (m) => {
+    setEditId(m.id);
+    setEditTitulo(m.titulo || "");
+    setEditDescripcion(m.descripcion || "");
+    setEditEnlace(m.enlace || "");
+  };
+
+  const cancelEdit = () => {
+    setEditId(null);
+    setEditTitulo("");
+    setEditDescripcion("");
+    setEditEnlace("");
+  };
+
+  const saveEdit = async () => {
+    if (!editId) return;
+    try {
+      setSavingEdit(true);
+      await api.put(`/api/materiales/${editId}`, {
+        titulo: editTitulo,
+        descripcion: editDescripcion,
+        enlace: editEnlace,
+      });
+
+      setMateriales((prev) =>
+        prev.map((m) =>
+          m.id === editId
+            ? {
+                ...m,
+                titulo: editTitulo,
+                descripcion: editDescripcion,
+                enlace: editEnlace,
+              }
+            : m
+        )
+      );
+      cancelEdit();
+    } catch (err) {
+      console.error("Error actualizando material:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "No se pudo actualizar el material. Intenta nuevamente."
+      );
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const deleteMaterial = async (m) => {
+    const ok = window.confirm(
+      `¿Seguro que quieres eliminar el material "${m.titulo}"?`
+    );
+    if (!ok) return;
+
+    try {
+      setDeletingId(m.id);
+      await api.delete(`/api/materiales/${m.id}`);
+      setMateriales((prev) => prev.filter((x) => x.id !== m.id));
+    } catch (err) {
+      console.error("Error eliminando material:", err.response?.data || err);
+      alert(
+        err.response?.data?.error ||
+          "No se pudo eliminar el material. Intenta nuevamente."
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // ───────── Render ─────────
 
@@ -146,7 +274,14 @@ export default function Home() {
   }
 
   return (
-    <div className="container">
+    <div
+      className="container"
+      style={{
+        maxHeight: "calc(100vh - 120px)", // deja espacio para navbar/footer
+        overflowY: "auto",
+        paddingBottom: "2rem",
+      }}
+    >
       <h1>Bienvenido, {user.nombre || "profesor"}</h1>
       <h2>Mis grupos y cursos</h2>
 
@@ -166,7 +301,7 @@ export default function Home() {
       {/* SOLO mostramos selects si el profe tiene al menos un grupo */}
       {!loadingGruposProfe && gruposProfe.length > 0 && (
         <>
-          {/* Selección de curso (solo cursos donde TIENE grupos) */}
+          {/* Selección de curso */}
           <div style={{ margin: "1rem 0" }}>
             <label>
               Curso:&nbsp;
@@ -184,7 +319,7 @@ export default function Home() {
             </label>
           </div>
 
-          {/* Selección de grupo (solo grupos de ese curso) */}
+          {/* Selección de grupo */}
           {cursoSel && (
             <div style={{ margin: "1rem 0" }}>
               <label>
@@ -208,7 +343,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Detalle de grupo: horario + alumnos */}
+          {/* Detalle de grupo: horario + alumnos + materiales */}
           {grupoActual && (
             <div style={{ marginTop: "1.5rem" }}>
               <h3>Grupo: {grupoActual.nombre}</h3>
@@ -219,6 +354,7 @@ export default function Home() {
                 )}
               </p>
 
+              {/* Horario */}
               <h4>Horario y aulas</h4>
               {Array.isArray(grupoActual.horario) &&
               grupoActual.horario.length > 0 ? (
@@ -234,6 +370,7 @@ export default function Home() {
                 <p>Este grupo no tiene horario registrado.</p>
               )}
 
+              {/* Alumnos */}
               <h4>Alumnos matriculados</h4>
               {loadingAlumnos && <p>Cargando alumnos...</p>}
 
@@ -251,6 +388,148 @@ export default function Home() {
                   ))}
                 </ul>
               )}
+
+              {/* Materiales */}
+              <h4>Materiales publicados</h4>
+              {loadingMateriales && <p>Cargando materiales...</p>}
+
+              {!loadingMateriales && materiales.length === 0 && (
+                <p>No hay materiales publicados para este grupo.</p>
+              )}
+
+              {!loadingMateriales && materiales.length > 0 && (
+                <ul>
+                  {materiales.map((m) => (
+                    <li key={m.id} style={{ marginBottom: "0.75rem" }}>
+                      {editId === m.id ? (
+                        // ----- MODO EDICIÓN -----
+                        <div
+                          style={{
+                            border: "1px solid #ccc",
+                            padding: "0.5rem",
+                            borderRadius: "4px",
+                          }}
+                        >
+                          <div>
+                            <label>
+                              Título:
+                              <input
+                                type="text"
+                                value={editTitulo}
+                                onChange={(e) =>
+                                  setEditTitulo(e.target.value)
+                                }
+                                style={{ width: "100%" }}
+                              />
+                            </label>
+                          </div>
+                          <div>
+                            <label>
+                              Descripción:
+                              <textarea
+                                value={editDescripcion}
+                                onChange={(e) =>
+                                  setEditDescripcion(e.target.value)
+                                }
+                                style={{ width: "100%", minHeight: "60px" }}
+                              />
+                            </label>
+                          </div>
+                          <div>
+                            <label>
+                              Enlace:
+                              <input
+                                type="url"
+                                value={editEnlace}
+                                onChange={(e) =>
+                                  setEditEnlace(e.target.value)
+                                }
+                                style={{ width: "100%" }}
+                              />
+                            </label>
+                          </div>
+                          <div style={{ marginTop: "0.5rem" }}>
+                            <button
+                              type="button"
+                              onClick={saveEdit}
+                              disabled={savingEdit}
+                            >
+                              {savingEdit ? "Guardando..." : "Guardar"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={cancelEdit}
+                              style={{ marginLeft: "0.5rem" }}
+                              disabled={savingEdit}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        // ----- MODO LECTURA -----
+                        <div>
+                          <strong>{m.titulo}</strong>{" "}
+                          <small>{formatFecha(m.createdAt)}</small>
+                          {m.descripcion && <div>{m.descripcion}</div>}
+                          {m.archivoUrl && (
+                            <div>
+                              Archivo:{" "}
+                              <a
+                                href={m.archivoUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {m.archivoNombre || "Descargar"}
+                              </a>
+                            </div>
+                          )}
+                          {m.enlace && (
+                            <div>
+                              Enlace:{" "}
+                              <a
+                                href={m.enlace}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {m.enlace}
+                              </a>
+                            </div>
+                          )}
+
+                          <div style={{ marginTop: "0.25rem" }}>
+                            <button
+                              type="button"
+                              onClick={() => startEdit(m)}
+                              style={{ marginRight: "0.5rem" }}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteMaterial(m)}
+                              disabled={deletingId === m.id}
+                            >
+                              {deletingId === m.id
+                                ? "Eliminando..."
+                                : "Eliminar"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Formulario para publicar nuevo material */}
+              <FormMaterial
+                cursoId={grupoActual.cursoId}
+                grupoId={grupoActual.id}
+                onUploaded={(nuevo) =>
+                  setMateriales((prev) => [nuevo, ...prev])
+                }
+              />
             </div>
           )}
         </>
