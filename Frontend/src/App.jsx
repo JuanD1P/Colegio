@@ -1,3 +1,4 @@
+// src/App.jsx
 import {
   BrowserRouter as Router,
   Route,
@@ -17,6 +18,7 @@ import Footer from "./Components/Footer";
 import Home from "./Components/Home";
 import Grupos from "./Components/Grupos";
 import AdminCursos from "./Components/AdminCursos";
+import Perfil from "./Components/Perfil";
 
 function App() {
   return (
@@ -37,6 +39,28 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["PROFESOR"]}>
                 <Home />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ESTUDIANTE */}
+          <Route
+            path="/inicio"
+            element={
+              <ProtectedRoute allowedRoles={["ESTUDIANTE"]}>
+                <Inicio />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* PERFIL (cualquier usuario autenticado) */}
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute
+                allowedRoles={["ADMIN", "PROFESOR", "ESTUDIANTE", "USER"]}
+              >
+                <Perfil />
               </ProtectedRoute>
             }
           />
@@ -67,16 +91,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <AdminCursos />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ESTUDIANTE */}
-          <Route
-            path="/inicio"
-            element={
-              <ProtectedRoute allowedRoles={["ESTUDIANTE"]}>
-                <Inicio />
               </ProtectedRoute>
             }
           />

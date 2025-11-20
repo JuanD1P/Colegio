@@ -1,3 +1,4 @@
+// src/Components/Login.jsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +34,7 @@ export default function Login() {
   useEffect(() => {
     localStorage.removeItem("auth-token");
     localStorage.removeItem("user-role");
+    localStorage.removeItem("user"); // limpiamos también el objeto user
   }, []);
 
   // Animación
@@ -107,6 +109,14 @@ export default function Login() {
       localStorage.setItem("auth-token", idToken);
       localStorage.setItem("user-role", data.rol);
 
+      // 🔹 Guardamos también el objeto user que usará Home/Inicio
+      const userPayload = {
+        id: data.uid, // lo que devuelva tu backend
+        rol: data.rol,
+        nombre: user.displayName || values.email,
+      };
+      localStorage.setItem("user", JSON.stringify(userPayload));
+
       showToast("Sesión iniciada", {
         variant: "success",
         title: "Bienvenido",
@@ -120,6 +130,7 @@ export default function Login() {
       if (apiMsg?.toLowerCase?.().includes("pendiente")) {
         localStorage.removeItem("auth-token");
         localStorage.removeItem("user-role");
+        localStorage.removeItem("user");
         try {
           await auth.signOut();
         } catch {}
@@ -131,6 +142,9 @@ export default function Login() {
       }
 
       if (status === 401) {
+        localStorage.removeItem("auth-token");
+        localStorage.removeItem("user-role");
+        localStorage.removeItem("user");
         showToast("Token inválido. Intenta iniciar sesión de nuevo.", {
           variant: "error",
           title: "Autenticación",
@@ -165,6 +179,14 @@ export default function Login() {
       localStorage.setItem("auth-token", idToken);
       localStorage.setItem("user-role", data.rol);
 
+      // 🔹 Guardamos también el objeto user
+      const userPayload = {
+        id: data.uid,
+        rol: data.rol,
+        nombre: user.displayName || user.email,
+      };
+      localStorage.setItem("user", JSON.stringify(userPayload));
+
       if (info?.isNewUser) {
         showToast("Registro exitoso con Google", {
           variant: "success",
@@ -186,6 +208,7 @@ export default function Login() {
       if (apiMsg?.toLowerCase?.().includes("pendiente")) {
         localStorage.removeItem("auth-token");
         localStorage.removeItem("user-role");
+        localStorage.removeItem("user");
         try {
           await auth.signOut();
         } catch {}
@@ -198,6 +221,9 @@ export default function Login() {
       }
 
       if (status === 401) {
+        localStorage.removeItem("auth-token");
+        localStorage.removeItem("user-role");
+        localStorage.removeItem("user");
         showToast("Token inválido. Intenta de nuevo.", {
           variant: "error",
           title: "Autenticación",

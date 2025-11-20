@@ -1,6 +1,7 @@
 // Backend/Routes/matriculasR.js
 import { Router } from "express";
 import { firestoreAdmin } from "../utils/db.js";
+import { requireRole } from "../middlewares/requireRole.js"; // 👈 NUEVO
 
 export const matriculasR = Router();
 
@@ -83,6 +84,7 @@ matriculasR.post("/matriculas", ensureAdmin, async (req, res) => {
 // GET /api/matriculas
 // Filtros opcionales: ?grupoId=&alumnoId=&estado=
 // Por defecto: solo estado = "activa"
+// (solo ADMIN)
 // ───────────────────────────────
 matriculasR.get("/matriculas", ensureAdmin, async (req, res) => {
   try {
@@ -121,7 +123,6 @@ matriculasR.get("/matriculas", ensureAdmin, async (req, res) => {
 // ───────────────────────────────
 // DELETE /api/matriculas/:id
 // Marca la matrícula como "baja"
-// (no la borramos para conservar historial)
 // ───────────────────────────────
 matriculasR.delete("/matriculas/:id", ensureAdmin, async (req, res) => {
   try {
@@ -144,3 +145,72 @@ matriculasR.delete("/matriculas/:id", ensureAdmin, async (req, res) => {
     res.status(500).json({ error: "Error eliminando matrícula" });
   }
 });
+
+// ───────────────────────────────
+// GET /api/alumnos/:alumnoId/grupos
+// Devuelve los grupos (con info de curso y profe) de un alumno
+// Roles: ADMIN o el propio ESTUDIANTE
+// ───────────────────────────────
+matriculasR.get(
+  "/alumnos/:alumnoId/grupos",
+  requireRole(["ADMIN", "ESTUDIANTE"]),
+  async (req, res) => {
+    try {
+      const { alumnoId } = req.params;
+      const rol = (req.user?.rol || req.user?.role || "").toUpperCase();
+      const uid = req.user?.uid || req.user?.id;
+
+      // Si es estudiante, solo puede ver sus propios grupos
+      if (rol === "ESTUDIANTE" && uid && uid !== alumnoId) {
+        return res.status(403).json({ error: "No autorizado" });
+      }
+
+      // 1) Matriculas activas del alumno
+      const matSnap = await firestoreAdmin
+        .collection("matriculas")
+        .where("alumnoId", "==", alumnoId)
+        .where("estado", "==", "activa")
+        .get();
+
+      if (matSnap.empty) {
+        return res.json([]);
+      }
+
+      const grupoIds = [
+        ...new Set(
+          matSnap.docs
+            .map((d) => d.data()?.grupoId)
+            .filter((x) => typeof x === "string")
+        ),
+      ];
+
+      // 2) Traer info de los grupos
+      const grupos = [];
+      for (const gid of grupoIds) {
+        const gRef = firestoreAdmin.collection("grupos").doc(gid);
+        const gSnap = await gRef.get();
+        if (!gSnap.exists) continue;
+
+        const g = gSnap.data() || {};
+
+        grupos.push({
+          id: gSnap.id,
+          nombreGrupo: g.nombre || "",
+          cursoId: g.cursoId || null,
+          cursoNombre: g.cursoNombre || "",
+          profesorId: g.profesorId || null,
+          profesorNombre: g.profesorNombre || "",
+          profesorEmail: g.profesorEmail || "",
+          horario: Array.isArray(g.horario) ? g.horario : [],
+        });
+      }
+
+      res.json(grupos);
+    } catch (e) {
+      console.error("GET /api/alumnos/:alumnoId/grupos error:", e);
+      res
+        .status(500)
+        .json({ error: "Error cargando grupos del estudiante" });
+    }
+  }
+);

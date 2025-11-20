@@ -1,14 +1,15 @@
 // Backend/Routes/gruposR.js
-import { Router } from 'express';
-import { firestoreAdmin } from '../utils/db.js';
+import { Router } from "express";
+import { firestoreAdmin } from "../utils/db.js";
+import { requireRole } from "../middlewares/requireRole.js";
 
 export const gruposR = Router();
 
 // Helper: solo admin
 function ensureAdmin(req, res, next) {
   const rol = req.user?.rol || req.user?.role;
-  if (rol !== 'ADMIN') {
-    return res.status(403).json({ error: 'Solo administradores' });
+  if (rol !== "ADMIN") {
+    return res.status(403).json({ error: "Solo administradores" });
   }
   next();
 }
@@ -17,9 +18,9 @@ function ensureAdmin(req, res, next) {
 // GET /api/grupos
 // Lista todos los grupos (ADMIN)
 // ───────────────────────────────
-gruposR.get('/grupos', ensureAdmin, async (_req, res) => {
+gruposR.get("/grupos", ensureAdmin, async (_req, res) => {
   try {
-    const snap = await firestoreAdmin.collection('grupos').get();
+    const snap = await firestoreAdmin.collection("grupos").get();
     const grupos = snap.docs.map((doc) => {
       const data = doc.data() || {};
       return {
@@ -41,8 +42,8 @@ gruposR.get('/grupos', ensureAdmin, async (_req, res) => {
 
     res.json(grupos);
   } catch (e) {
-    console.error('GET /api/grupos error:', e);
-    res.status(500).json({ error: 'Error cargando grupos' });
+    console.error("GET /api/grupos error:", e);
+    res.status(500).json({ error: "Error cargando grupos" });
   }
 });
 
@@ -51,21 +52,21 @@ gruposR.get('/grupos', ensureAdmin, async (_req, res) => {
 // Crea un grupo nuevo
 // Body: { cursoId, nombre, profesorId }
 // ───────────────────────────────
-gruposR.post('/grupos', ensureAdmin, async (req, res) => {
+gruposR.post("/grupos", ensureAdmin, async (req, res) => {
   try {
     const { cursoId, nombre, profesorId } = req.body || {};
 
     if (!cursoId || !nombre || !profesorId) {
       return res
         .status(400)
-        .json({ error: 'cursoId, nombre y profesorId son obligatorios' });
+        .json({ error: "cursoId, nombre y profesorId son obligatorios" });
     }
 
     // Leer curso para guardar también nombre del curso
     let cursoNombre = null;
     try {
       const cursoSnap = await firestoreAdmin
-        .collection('cursos')
+        .collection("cursos")
         .doc(cursoId)
         .get();
       if (cursoSnap.exists) {
@@ -73,7 +74,7 @@ gruposR.post('/grupos', ensureAdmin, async (req, res) => {
         cursoNombre = cData.nombre || cData.titulo || null;
       }
     } catch (e) {
-      console.warn('WARN leyendo curso en POST /grupos:', e?.message || e);
+      console.warn("WARN leyendo curso en POST /grupos:", e?.message || e);
     }
 
     // Leer profesor para guardar nombre + email
@@ -81,7 +82,7 @@ gruposR.post('/grupos', ensureAdmin, async (req, res) => {
     let profesorEmail = null;
     try {
       const profSnap = await firestoreAdmin
-        .collection('usuarios')
+        .collection("usuarios")
         .doc(profesorId)
         .get();
       if (profSnap.exists) {
@@ -89,12 +90,12 @@ gruposR.post('/grupos', ensureAdmin, async (req, res) => {
         profesorNombre =
           u.nombre ||
           u.nombre_completo ||
-          `${u.nombres || ''} ${u.apellidos || ''}`.trim() ||
+          `${u.nombres || ""} ${u.apellidos || ""}`.trim() ||
           null;
         profesorEmail = u.email || null;
       }
     } catch (e) {
-      console.warn('WARN leyendo profesor en POST /grupos:', e?.message || e);
+      console.warn("WARN leyendo profesor en POST /grupos:", e?.message || e);
     }
 
     const now = new Date();
@@ -114,32 +115,32 @@ gruposR.post('/grupos', ensureAdmin, async (req, res) => {
       actualizadoEn: now,
     };
 
-    const ref = await firestoreAdmin.collection('grupos').add(grupoData);
+    const ref = await firestoreAdmin.collection("grupos").add(grupoData);
 
     res.status(201).json({ id: ref.id, ...grupoData });
   } catch (e) {
-    console.error('POST /api/grupos error:', e);
-    res.status(500).json({ error: 'Error creando grupo' });
+    console.error("POST /api/grupos error:", e);
+    res.status(500).json({ error: "Error creando grupo" });
   }
 });
 
 // ───────────────────────────────
-// POST /api/grupos/:id/matriculas  (opcional, si lo usas)
-// Body: { alumnoUid }
+// POST /api/grupos/:id/matriculas
+// (si lo usas para meter alumnos a mano)
 // ───────────────────────────────
-gruposR.post('/grupos/:id/matriculas', ensureAdmin, async (req, res) => {
+gruposR.post("/grupos/:id/matriculas", ensureAdmin, async (req, res) => {
   try {
     const grupoId = req.params.id;
     const { alumnoUid } = req.body || {};
 
     if (!alumnoUid) {
-      return res.status(400).json({ error: 'alumnoUid es obligatorio' });
+      return res.status(400).json({ error: "alumnoUid es obligatorio" });
     }
 
-    const ref = firestoreAdmin.collection('grupos').doc(grupoId);
+    const ref = firestoreAdmin.collection("grupos").doc(grupoId);
     const snap = await ref.get();
     if (!snap.exists) {
-      return res.status(404).json({ error: 'Grupo no encontrado' });
+      return res.status(404).json({ error: "Grupo no encontrado" });
     }
 
     await ref.update({
@@ -151,21 +152,21 @@ gruposR.post('/grupos/:id/matriculas', ensureAdmin, async (req, res) => {
 
     res.json({ ok: true });
   } catch (e) {
-    console.error('POST /api/grupos/:id/matriculas error:', e);
-    res.status(500).json({ error: 'Error al matricular alumno' });
+    console.error("POST /api/grupos/:id/matriculas error:", e);
+    res.status(500).json({ error: "Error al matricular alumno" });
   }
 });
 
 // ───────────────────────────────
 // GET /api/profes
-// Lista de profesores (usuarios con rol = "PROFESOR" y activos)
+// Lista de profesores (ADMIN)
 // ───────────────────────────────
-gruposR.get('/profes', ensureAdmin, async (_req, res) => {
+gruposR.get("/profes", ensureAdmin, async (_req, res) => {
   try {
     const snap = await firestoreAdmin
-      .collection('usuarios')
-      .where('rol', '==', 'PROFESOR')
-      .where('estado', '==', 'activo')
+      .collection("usuarios")
+      .where("rol", "==", "PROFESOR")
+      .where("estado", "==", "activo")
       .get();
 
     const profes = snap.docs.map((d) => {
@@ -175,7 +176,7 @@ gruposR.get('/profes', ensureAdmin, async (_req, res) => {
         nombre:
           u.nombre ||
           u.nombre_completo ||
-          `${u.nombres || ''} ${u.apellidos || ''}`.trim() ||
+          `${u.nombres || ""} ${u.apellidos || ""}`.trim() ||
           null,
         email: u.email || null,
       };
@@ -183,17 +184,16 @@ gruposR.get('/profes', ensureAdmin, async (_req, res) => {
 
     res.json(profes);
   } catch (e) {
-    console.error('GET /api/profes error:', e);
-    res.status(500).json({ error: 'Error cargando profesores' });
+    console.error("GET /api/profes error:", e);
+    res.status(500).json({ error: "Error cargando profesores" });
   }
 });
 
 // ───────────────────────────────
 // PUT /api/grupos/:id
-// Actualiza horario (y otros campos si quieres)
-// Body: { horario }
+// Actualiza horario u otros campos (ADMIN)
 // ───────────────────────────────
-gruposR.put('/grupos/:id', ensureAdmin, async (req, res) => {
+gruposR.put("/grupos/:id", ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { horario } = req.body || {};
@@ -203,45 +203,115 @@ gruposR.put('/grupos/:id', ensureAdmin, async (req, res) => {
     };
     if (Array.isArray(horario)) patch.horario = horario;
 
-    await firestoreAdmin.collection('grupos').doc(id).update(patch);
+    await firestoreAdmin.collection("grupos").doc(id).update(patch);
 
     res.json({ ok: true });
   } catch (e) {
-    console.error('PUT /api/grupos/:id error:', e);
-    res.status(500).json({ error: 'Error actualizando grupo' });
+    console.error("PUT /api/grupos/:id error:", e);
+    res.status(500).json({ error: "Error actualizando grupo" });
   }
 });
-
 
 // ───────────────────────────────
 // GET /api/grupos/:id/alumnos
-// Devuelve matrículas activas del grupo
-// (array de { id, grupoId, alumnoId, estado, createdAt })
+// Devuelve alumnos (no solo ids) de un grupo
+// (PROFESOR o ADMIN)
 // ───────────────────────────────
-gruposR.get('/grupos/:id/alumnos', ensureAdmin, async (req, res) => {
-  try {
-    const grupoId = req.params.id;
+gruposR.get(
+  "/grupos/:id/alumnos",
+  requireRole(["ADMIN", "PROFESOR"]),
+  async (req, res) => {
+    try {
+      const grupoId = req.params.id;
 
-    const snap = await firestoreAdmin
-      .collection('matriculas')
-      .where('grupoId', '==', grupoId)
-      .where('estado', '==', 'activa')
-      .get();
+      // 1) Matrículas activas del grupo
+      const snap = await firestoreAdmin
+        .collection("matriculas")
+        .where("grupoId", "==", grupoId)
+        .where("estado", "==", "activa")
+        .get();
 
-    const arr = snap.docs.map((d) => {
-      const data = d.data() || {};
-      return {
-        id: d.id,
-        grupoId: data.grupoId || grupoId,
-        alumnoId: data.alumnoId || null,
-        estado: data.estado || 'activa',
-        createdAt: data.createdAt || null,
-      };
-    });
+      if (snap.empty) {
+        return res.json([]);
+      }
 
-    res.json(arr);
-  } catch (e) {
-    console.error('GET /api/grupos/:id/alumnos error:', e);
-    res.status(500).json({ error: 'Error cargando alumnos del grupo' });
+      const alumnoIds = [
+        ...new Set(
+          snap.docs
+            .map((d) => d.data()?.alumnoId)
+            .filter((x) => typeof x === "string")
+        ),
+      ];
+
+      // 2) Traer info de los alumnos
+      const alumnos = [];
+      for (const aid of alumnoIds) {
+        const uRef = firestoreAdmin.collection("usuarios").doc(aid);
+        const uSnap = await uRef.get();
+        if (!uSnap.exists) continue;
+
+        const u = uSnap.data() || {};
+        if ((u.rol || "").toUpperCase() !== "ESTUDIANTE") continue;
+
+        alumnos.push({
+          id: uSnap.id,
+          nombres: u.nombres || "",
+          apellidos: u.apellidos || "",
+          nombre: `${u.nombres || ""} ${u.apellidos || ""}`.trim(),
+          email: u.email || "",
+          documento: u.documento || "",
+        });
+      }
+
+      res.json(alumnos);
+    } catch (e) {
+      console.error("GET /api/grupos/:id/alumnos error:", e);
+      res.status(500).json({ error: "Error cargando alumnos del grupo" });
+    }
   }
-});
+);
+
+// ───────────────────────────────
+// GET /api/profesores/:profesorId/grupos
+// (opcional ?cursoId=...)
+// ───────────────────────────────
+gruposR.get(
+  "/profesores/:profesorId/grupos",
+  requireRole(["ADMIN", "PROFESOR"]),
+  async (req, res) => {
+    try {
+      const { profesorId } = req.params;
+      const { cursoId } = req.query || {};
+
+      let ref = firestoreAdmin
+        .collection("grupos")
+        .where("profesorId", "==", profesorId);
+
+      if (cursoId) {
+        ref = ref.where("cursoId", "==", cursoId);
+      }
+
+      const snap = await ref.get();
+
+      const grupos = snap.docs.map((doc) => {
+        const data = doc.data() || {};
+        return {
+          id: doc.id,
+          nombre: data.nombre || null,
+          cursoId: data.cursoId || null,
+          cursoNombre: data.cursoNombre || null,
+          profesorId: data.profesorId || null,
+          profesorNombre: data.profesorNombre || null,
+          profesorEmail: data.profesorEmail || null,
+          horario: Array.isArray(data.horario) ? data.horario : [],
+          totalAlumnos: Array.isArray(data.alumnos) ? data.alumnos.length : 0,
+        };
+      });
+
+      res.json(grupos);
+    } catch (e) {
+      console.error("GET /api/profesores/:profesorId/grupos error:", e);
+      res.status(500).json({ error: "Error cargando grupos del profesor" });
+    }
+  }
+);

@@ -1,6 +1,7 @@
 // Backend/Routes/cursosR.js
 import { Router } from "express";
 import { firestoreAdmin } from "../utils/db.js";
+import { requireRole } from "../middlewares/requireRole.js";
 
 export const cursosR = Router();
 
@@ -72,3 +73,86 @@ cursosR.post("/", async (req, res) => {
       .json({ error: error?.message || "Error al crear curso" });
   }
 });
+
+
+cursosR.get(
+  "/:cursoId/alumnos",
+  requireRole(["ADMIN", "PROFESOR"]), // profe o admin pueden ver
+  async (req, res) => {
+    try {
+      const { cursoId } = req.params;
+
+      // 1) Buscar grupos que pertenezcan a este curso
+      const gruposSnap = await firestoreAdmin
+        .collection("grupos")
+        .where("cursoId", "==", cursoId)
+        .get();
+
+      if (gruposSnap.empty) {
+        return res.json([]); // sin grupos = sin alumnos
+      }
+
+      const grupos = gruposSnap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }));
+      const grupoIds = grupos.map((g) => g.id);
+
+      // 2) Buscar matrículas activas de esos grupos
+      const matriculas = [];
+      for (const gid of grupoIds) {
+        const mSnap = await firestoreAdmin
+          .collection("matriculas")
+          .where("grupoId", "==", gid)
+          .where("estado", "==", "activa")
+          .get();
+
+        mSnap.forEach((doc) => {
+          const data = doc.data() || {};
+          matriculas.push({
+            id: doc.id,
+            grupoId: data.grupoId,
+            alumnoId: data.alumnoId,
+          });
+        });
+      }
+
+      if (matriculas.length === 0) {
+        return res.json([]);
+      }
+
+      // 3) Obtener info de los alumnos
+      const alumnoIds = [
+        ...new Set(matriculas.map((m) => m.alumnoId).filter(Boolean)),
+      ];
+
+      const alumnos = [];
+      for (const aid of alumnoIds) {
+        const uRef = firestoreAdmin.collection("usuarios").doc(aid);
+        const uSnap = await uRef.get();
+        if (!uSnap.exists) continue;
+
+        const uData = uSnap.data() || {};
+        // opcional: solo estudiantes
+        if ((uData.rol || "").toUpperCase() !== "ESTUDIANTE") continue;
+
+        alumnos.push({
+          id: uSnap.id,
+          nombres: uData.nombres || "",
+          apellidos: uData.apellidos || "",
+          nombre: `${uData.nombres || ""} ${uData.apellidos || ""}`.trim(),
+          email: uData.email || "",
+          documento: uData.documento || "",
+          grupoId: matriculas.find((m) => m.alumnoId === uSnap.id)?.grupoId,
+        });
+      }
+
+      return res.json(alumnos);
+    } catch (e) {
+      console.error("GET /api/cursos/:cursoId/alumnos error:", e);
+      return res
+        .status(500)
+        .json({ error: "Error obteniendo alumnos del curso" });
+    }
+  }
+);
