@@ -492,6 +492,24 @@ export default function Home() {
                 )}
               </section>
 
+              {!cursoSel && gruposProfe.length > 0 && (
+                <section className="profe-section profe-emptyState glass-soft">
+                  <div className="profe-emptyIcon">📘</div>
+                  <div className="profe-emptyContent">
+                    <h3>Empieza eligiendo un curso</h3>
+                    <p>
+                      Selecciona un curso en el menú superior para ver sus grupos,
+                      alumnos matriculados y los materiales que has publicado.
+                    </p>
+                    <ul>
+                      <li>1. Elige un <strong>curso</strong>.</li>
+                      <li>2. Selecciona un <strong>grupo</strong>.</li>
+                      <li>3. Publica o gestiona <strong>materiales</strong> para tus clases.</li>
+                    </ul>
+                  </div>
+                </section>
+              )}
+
               {/* Detalle del grupo */}
               {grupoActual && (
                 <section className="profe-section profe-section--card">
