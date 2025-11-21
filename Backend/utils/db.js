@@ -1,4 +1,3 @@
-// utils/db.js
 import admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
@@ -21,7 +20,7 @@ const keyPath = ensureServiceAccountFile();
 const raw = fs.readFileSync(keyPath, "utf8");
 const sa = JSON.parse(raw);
 
-// Forzar Application Default Credentials para que Firestore y Auth usen lo mismo
+
 process.env.GOOGLE_APPLICATION_CREDENTIALS = keyPath;
 
 if (!admin.apps.length) {

@@ -1,11 +1,10 @@
-// Backend/Routes/matriculasR.js
 import { Router } from "express";
 import { firestoreAdmin } from "../utils/db.js";
 import { requireRole } from "../middlewares/requireRole.js"; // 👈 NUEVO
 
 export const matriculasR = Router();
 
-// ───────── Helper: solo admin ─────────
+
 function ensureAdmin(req, res, next) {
   const rol = req.user?.rol || req.user?.role;
   if (rol !== "ADMIN") {
@@ -14,11 +13,7 @@ function ensureAdmin(req, res, next) {
   next();
 }
 
-// ───────────────────────────────
-// POST /api/matriculas
-// Crea matrícula { grupoId, alumnoId }
-// Estado por defecto: "activa"
-// ───────────────────────────────
+
 matriculasR.post("/matriculas", ensureAdmin, async (req, res) => {
   try {
     const { grupoId, alumnoId } = req.body || {};
@@ -29,21 +24,21 @@ matriculasR.post("/matriculas", ensureAdmin, async (req, res) => {
         .json({ error: "grupoId y alumnoId son obligatorios" });
     }
 
-    // Validar que el grupo exista
+
     const grupoRef = firestoreAdmin.collection("grupos").doc(grupoId);
     const grupoSnap = await grupoRef.get();
     if (!grupoSnap.exists) {
       return res.status(404).json({ error: "Grupo no encontrado" });
     }
 
-    // Validar que el alumno exista
+
     const alumRef = firestoreAdmin.collection("usuarios").doc(alumnoId);
     const alumSnap = await alumRef.get();
     if (!alumSnap.exists) {
       return res.status(404).json({ error: "Alumno no encontrado" });
     }
 
-    // Evitar duplicados activos
+
     const dupSnap = await firestoreAdmin
       .collection("matriculas")
       .where("grupoId", "==", grupoId)
@@ -80,12 +75,7 @@ matriculasR.post("/matriculas", ensureAdmin, async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// GET /api/matriculas
-// Filtros opcionales: ?grupoId=&alumnoId=&estado=
-// Por defecto: solo estado = "activa"
-// (solo ADMIN)
-// ───────────────────────────────
+
 matriculasR.get("/matriculas", ensureAdmin, async (req, res) => {
   try {
     const { grupoId, alumnoId, estado } = req.query || {};
@@ -94,7 +84,7 @@ matriculasR.get("/matriculas", ensureAdmin, async (req, res) => {
 
     if (grupoId) ref = ref.where("grupoId", "==", grupoId);
     if (alumnoId) ref = ref.where("alumnoId", "==", alumnoId);
-    // Por defecto solo activas
+
     if (estado) {
       ref = ref.where("estado", "==", estado);
     } else {
@@ -120,10 +110,6 @@ matriculasR.get("/matriculas", ensureAdmin, async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// DELETE /api/matriculas/:id
-// Marca la matrícula como "baja"
-// ───────────────────────────────
 matriculasR.delete("/matriculas/:id", ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -146,11 +132,7 @@ matriculasR.delete("/matriculas/:id", ensureAdmin, async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// GET /api/alumnos/:alumnoId/grupos
-// Devuelve los grupos (con info de curso y profe) de un alumno
-// Roles: ADMIN o el propio ESTUDIANTE
-// ───────────────────────────────
+
 matriculasR.get(
   "/alumnos/:alumnoId/grupos",
   requireRole(["ADMIN", "ESTUDIANTE"]),
@@ -160,12 +142,11 @@ matriculasR.get(
       const rol = (req.user?.rol || req.user?.role || "").toUpperCase();
       const uid = req.user?.uid || req.user?.id;
 
-      // Si es estudiante, solo puede ver sus propios grupos
+
       if (rol === "ESTUDIANTE" && uid && uid !== alumnoId) {
         return res.status(403).json({ error: "No autorizado" });
       }
 
-      // 1) Matriculas activas del alumno
       const matSnap = await firestoreAdmin
         .collection("matriculas")
         .where("alumnoId", "==", alumnoId)
@@ -184,7 +165,6 @@ matriculasR.get(
         ),
       ];
 
-      // 2) Traer info de los grupos
       const grupos = [];
       for (const gid of grupoIds) {
         const gRef = firestoreAdmin.collection("grupos").doc(gid);

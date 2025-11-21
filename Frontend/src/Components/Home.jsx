@@ -499,13 +499,21 @@ export default function Home() {
                   <div className="profe-emptyContent">
                     <h3>Empieza eligiendo un curso</h3>
                     <p>
-                      Selecciona un curso en el menú superior para ver sus grupos,
-                      alumnos matriculados y los materiales que has publicado.
+                      Selecciona un curso en el menú superior para ver sus
+                      grupos, alumnos matriculados y los materiales que has
+                      publicado.
                     </p>
                     <ul>
-                      <li>1. Elige un <strong>curso</strong>.</li>
-                      <li>2. Selecciona un <strong>grupo</strong>.</li>
-                      <li>3. Publica o gestiona <strong>materiales</strong> para tus clases.</li>
+                      <li>
+                        1. Elige un <strong>curso</strong>.
+                      </li>
+                      <li>
+                        2. Selecciona un <strong>grupo</strong>.
+                      </li>
+                      <li>
+                        3. Publica o gestiona <strong>materiales</strong> para
+                        tus clases.
+                      </li>
                     </ul>
                   </div>
                 </section>
@@ -591,7 +599,9 @@ export default function Home() {
 
                   {/* Materiales */}
                   <div className="profe-block">
-                    <h3 className="profe-subsectionTitle">Materiales publicados</h3>
+                    <h3 className="profe-subsectionTitle">
+                      Materiales publicados
+                    </h3>
 
                     {loadingMateriales && (
                       <p className="profe-info">Cargando materiales...</p>
@@ -758,144 +768,198 @@ export default function Home() {
 
                     {!loadingTareas && tareas.length > 0 && (
                       <ul className="profe-materialList">
-                        {tareas.map((t) => (
-                          <li key={t.id} className="profe-materialItem">
-                            <div className="profe-materialHeader">
-                              <div>
-                                <strong>{t.titulo}</strong>
-                                {t.fechaEntrega && (
-                                  <small>
-                                    Entrega: {formatFecha(t.fechaEntrega)}
-                                  </small>
-                                )}
+                        {tareas.map((t) => {
+                          // usar fechaLimite (el campo real de la tarea)
+                          let fechaLimiteStr = "";
+                          try {
+                            const f = t.fechaLimite?.toDate
+                              ? t.fechaLimite.toDate()
+                              : t.fechaLimite
+                              ? new Date(t.fechaLimite)
+                              : null;
+                            if (f) fechaLimiteStr = f.toLocaleString();
+                          } catch {
+                            fechaLimiteStr = "";
+                          }
+
+                          return (
+                            <li key={t.id} className="profe-materialItem">
+                              <div className="profe-materialHeader">
+                                <div>
+                                  <strong>{t.titulo}</strong>
+                                  {fechaLimiteStr && (
+                                    <small>
+                                      Límite: {fechaLimiteStr}
+                                    </small>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="profe-btn profe-btn--ghost"
+                                  onClick={() => toggleEntregas(t.id)}
+                                >
+                                  {t.mostrarEntregas
+                                    ? "Ocultar entregas"
+                                    : "Ver entregas"}
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                className="profe-btn profe-btn--ghost"
-                                onClick={() => toggleEntregas(t.id)}
-                              >
-                                {t.mostrarEntregas
-                                  ? "Ocultar entregas"
-                                  : "Ver entregas"}
-                              </button>
-                            </div>
 
-                            {t.descripcion && (
-                              <p className="profe-materialDesc">
-                                {t.descripcion}
-                              </p>
-                            )}
+                              {t.descripcion && (
+                                <p className="profe-materialDesc">
+                                  {t.descripcion}
+                                </p>
+                              )}
 
-                            {t.mostrarEntregas && (
-                              <div className="profe-block">
-                                {t.cargandoEntregas ? (
-                                  <p className="profe-info">
-                                    Cargando entregas...
-                                  </p>
-                                ) : t.entregas && t.entregas.length > 0 ? (
-                                  <ul className="profe-list">
-                                    {t.entregas.map((e) => (
-                                      <li
-                                        key={e.id}
-                                        className="profe-listItem"
-                                      >
-                                        <div className="profe-listMain">
-                                          <strong>
-                                            {e.alumnoNombre ||
-                                              e.alumnoEmail ||
-                                              "Estudiante"}
-                                          </strong>
-                                          <span className="profe-listSecondary">
-                                            {e.alumnoEmail}{" "}
-                                            {e.fechaEntrega &&
-                                              `· ${formatFecha(
-                                                e.fechaEntrega
-                                              )}`}
-                                          </span>
-                                        </div>
-
-                                        <div
-                                          style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            gap: 4,
-                                            alignItems: "flex-end",
-                                          }}
-                                        >
-                                          <input
-                                            type="number"
-                                            min={0}
-                                            max={100}
-                                            value={
-                                              notaEdit[e.id] ??
-                                              (e.nota ?? "")
-                                            }
-                                            onChange={(ev) =>
-                                              setNotaEdit((prev) => ({
-                                                ...prev,
-                                                [e.id]: ev.target.value,
-                                              }))
-                                            }
-                                            style={{
-                                              width: 72,
-                                              fontSize: "0.8rem",
-                                            }}
-                                          />
-                                          <textarea
-                                            value={
-                                              comentarioEdit[e.id] ??
-                                              (e.comentario ?? "")
-                                            }
-                                            onChange={(ev) =>
-                                              setComentarioEdit((prev) => ({
-                                                ...prev,
-                                                [e.id]: ev.target.value,
-                                              }))
-                                            }
-                                            style={{
-                                              width: 190,
-                                              fontSize: "0.78rem",
-                                              minHeight: 50,
-                                            }}
-                                          />
-                                          <button
-                                            type="button"
-                                            className="profe-btn profe-btn--primary"
-                                            onClick={() =>
-                                              guardarNotaEntrega(e.id, t.id)
-                                            }
-                                            disabled={savingNotaId === e.id}
+                              {t.mostrarEntregas && (
+                                <div className="profe-block">
+                                  {t.cargandoEntregas ? (
+                                    <p className="profe-info">
+                                      Cargando entregas...
+                                    </p>
+                                  ) : t.entregas && t.entregas.length > 0 ? (
+                                    <ul className="profe-list">
+                                      {t.entregas.map((e) => {
+                                        const fechaEntrega =
+                                          e.entregadaEn || e.createdAt;
+                                        return (
+                                          <li
+                                            key={e.id}
+                                            className="profe-listItem"
                                           >
-                                            {savingNotaId === e.id
-                                              ? "Guardando..."
-                                              : "Guardar nota"}
-                                          </button>
-                                        </div>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                ) : (
-                                  <p className="profe-info">
-                                    Aún no hay entregas para esta tarea.
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </li>
-                        ))}
+                                            <div className="profe-listMain">
+                                              <strong>
+                                                {e.alumnoNombre ||
+                                                  e.alumnoEmail ||
+                                                  "Estudiante"}
+                                              </strong>
+                                              <span className="profe-listSecondary">
+                                                {e.alumnoEmail}
+                                                {fechaEntrega && (
+                                                  <>
+                                                    {" · "}
+                                                    {formatFecha(
+                                                      fechaEntrega
+                                                    )}
+                                                  </>
+                                                )}
+                                              </span>
+                                              {e.archivoUrl && (
+                                                <span className="profe-listSecondary">
+                                                  <a
+                                                    href={e.archivoUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                  >
+                                                    {e.archivoNombre ||
+                                                      "Ver archivo"}
+                                                  </a>
+                                                </span>
+                                              )}
+                                              {e.enlace && (
+                                                <span className="profe-listSecondary">
+                                                  <a
+                                                    href={e.enlace}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                  >
+                                                    Enlace
+                                                  </a>
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 4,
+                                                alignItems: "flex-end",
+                                              }}
+                                            >
+                                              <input
+                                                type="number"
+                                                min={0}
+                                                max={100}
+                                                value={
+                                                  notaEdit[e.id] ??
+                                                  (e.nota ?? "")
+                                                }
+                                                onChange={(ev) =>
+                                                  setNotaEdit((prev) => ({
+                                                    ...prev,
+                                                    [e.id]:
+                                                      ev.target.value,
+                                                  }))
+                                                }
+                                                style={{
+                                                  width: 72,
+                                                  fontSize: "0.8rem",
+                                                }}
+                                              />
+                                              <textarea
+                                                value={
+                                                  comentarioEdit[e.id] ??
+                                                  (e.comentario ?? "")
+                                                }
+                                                onChange={(ev) =>
+                                                  setComentarioEdit(
+                                                    (prev) => ({
+                                                      ...prev,
+                                                      [e.id]:
+                                                        ev.target.value,
+                                                    })
+                                                  )
+                                                }
+                                                style={{
+                                                  width: 190,
+                                                  fontSize: "0.78rem",
+                                                  minHeight: 50,
+                                                }}
+                                              />
+                                              <button
+                                                type="button"
+                                                className="profe-btn profe-btn--primary"
+                                                onClick={() =>
+                                                  guardarNotaEntrega(
+                                                    e.id,
+                                                    t.id
+                                                  )
+                                                }
+                                                disabled={
+                                                  savingNotaId === e.id
+                                                }
+                                              >
+                                                {savingNotaId === e.id
+                                                  ? "Guardando..."
+                                                  : "Guardar nota"}
+                                              </button>
+                                            </div>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  ) : (
+                                    <p className="profe-info">
+                                      Aún no hay entregas para esta tarea.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
                       </ul>
                     )}
                   </div>
                 </section>
               )}
+
               {/* Formulario para crear nueva tarea */}
               {grupoActual && (
                 <FormTarea
                   cursoId={grupoActual.cursoId}
                   grupoId={grupoActual.id}
-                  onCreated={(nueva) =>
-                    setTareas((prev) => [nueva, ...prev])
-                  }
+                  onCreated={(nueva) => setTareas((prev) => [nueva, ...prev])}
                 />
               )}
             </>

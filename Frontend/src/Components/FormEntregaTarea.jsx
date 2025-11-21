@@ -1,4 +1,3 @@
-// src/Components/FormEntregaTarea.jsx
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 
@@ -11,12 +10,12 @@ export default function FormEntregaTarea({ tarea, miEntrega: miEntregaProp, onSu
   const [error, setError] = useState("");
   const [miEntrega, setMiEntrega] = useState(miEntregaProp || null);
 
-  // si el padre nos manda miEntrega, la sincronizamos
+
   useEffect(() => {
     setMiEntrega(miEntregaProp || null);
   }, [miEntregaProp?.id]);
 
-  // Si no viene miEntrega por props, la consultamos nosotros
+
   useEffect(() => {
     if (!tarea?.id || miEntregaProp) return;
 

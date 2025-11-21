@@ -1,20 +1,15 @@
-// Backend/Routes/cursosR.js
 import { Router } from "express";
 import { firestoreAdmin } from "../utils/db.js";
 import { requireRole } from "../middlewares/requireRole.js";
 
 export const cursosR = Router();
 
-/**
- * GET /api/cursos
- */
 cursosR.get("/", async (req, res) => {
   console.log("GET /api/cursos");
   try {
-    // 👇 Versión simple, SIN índices compuestos
     const snapshot = await firestoreAdmin
       .collection("cursos")
-      .orderBy("nombre", "asc")   // o "anio" si prefieres
+      .orderBy("nombre", "asc")  
       .get();
 
     const cursos = snapshot.docs.map((doc) => ({
@@ -26,16 +21,12 @@ cursosR.get("/", async (req, res) => {
     return res.json(cursos);
   } catch (error) {
     console.error("Error al obtener cursos:", error);
-    // Manda el mensaje al frontend para poder verlo
     return res
       .status(500)
       .json({ error: error?.message || "Error al obtener cursos" });
   }
 });
 
-/**
- * POST /api/cursos
- */
 cursosR.post("/", async (req, res) => {
   console.log("POST /api/cursos body:", req.body);
   try {
@@ -77,19 +68,18 @@ cursosR.post("/", async (req, res) => {
 
 cursosR.get(
   "/:cursoId/alumnos",
-  requireRole(["ADMIN", "PROFESOR"]), // profe o admin pueden ver
+  requireRole(["ADMIN", "PROFESOR"]), 
   async (req, res) => {
     try {
       const { cursoId } = req.params;
 
-      // 1) Buscar grupos que pertenezcan a este curso
       const gruposSnap = await firestoreAdmin
         .collection("grupos")
         .where("cursoId", "==", cursoId)
         .get();
 
       if (gruposSnap.empty) {
-        return res.json([]); // sin grupos = sin alumnos
+        return res.json([]);
       }
 
       const grupos = gruposSnap.docs.map((d) => ({
@@ -98,7 +88,6 @@ cursosR.get(
       }));
       const grupoIds = grupos.map((g) => g.id);
 
-      // 2) Buscar matrículas activas de esos grupos
       const matriculas = [];
       for (const gid of grupoIds) {
         const mSnap = await firestoreAdmin
@@ -121,7 +110,6 @@ cursosR.get(
         return res.json([]);
       }
 
-      // 3) Obtener info de los alumnos
       const alumnoIds = [
         ...new Set(matriculas.map((m) => m.alumnoId).filter(Boolean)),
       ];
@@ -133,7 +121,6 @@ cursosR.get(
         if (!uSnap.exists) continue;
 
         const uData = uSnap.data() || {};
-        // opcional: solo estudiantes
         if ((uData.rol || "").toUpperCase() !== "ESTUDIANTE") continue;
 
         alumnos.push({

@@ -1,4 +1,3 @@
-// Backend/Routes/entregasR.js
 import { Router } from "express";
 import multer from "multer";
 import { firestoreAdmin } from "../utils/db.js";
@@ -7,20 +6,20 @@ import { requireRole } from "../middlewares/requireRole.js";
 
 export const entregasR = Router();
 
-// Multer: archivo en memoria
+
 const upload = multer({ storage: multer.memoryStorage() });
 
-// nombre del bucket de supabase (puedes cambiar la env o el literal)
-const BUCKET = process.env.SUPABASE_BUCKET_ENTREGAS || "entregas";
 
-/**
- * POST /api/tareas/:tareaId/entregas
- * Estudiante sube / actualiza su entrega
- */
+const BUCKET =
+  process.env.SUPABASE_BUCKET_ENTREGAS ||
+  process.env.SUPABASE_BUCKET ||
+  "materiales";
+
+
 entregasR.post(
   "/tareas/:tareaId/entregas",
   requireRole(["ESTUDIANTE"]),
-  upload.single("archivo"), // campo "archivo" en el form
+  upload.single("archivo"), 
   async (req, res) => {
     try {
       const tareaId = req.params.tareaId;
@@ -43,7 +42,6 @@ entregasR.post(
       let archivoTipo = null;
       let archivoPath = null;
 
-      // ── Subir a Supabase si hay archivo ─────────────────
       if (archivo) {
         archivoNombre = archivo.originalname;
         archivoTipo = archivo.mimetype || "application/octet-stream";
@@ -85,11 +83,11 @@ entregasR.post(
         archivoTipo,
         archivoPath,
         entregadaEn: now,
-        createdAt: now, // por si en el front usas createdAt
+        createdAt: now, 
         updatedAt: now,
       };
 
-      // Si ya tenía una entrega, la sobreescribimos (una por alumno y tarea)
+
       const existingSnap = await firestoreAdmin
         .collection("entregas")
         .where("tareaId", "==", tareaId)
@@ -112,10 +110,6 @@ entregasR.post(
   }
 );
 
-/**
- * GET /api/tareas/:tareaId/mi-entrega
- * Devuelve la entrega del alumno logueado para esa tarea
- */
 entregasR.get(
   "/tareas/:tareaId/mi-entrega",
   requireRole(["ESTUDIANTE"]),
@@ -144,11 +138,7 @@ entregasR.get(
   }
 );
 
-/**
- * GET /api/tareas/:tareaId/entregas
- * Lista todas las entregas de la tarea (solo profesor/admin)
- * Enriquecido con datos básicos del alumno.
- */
+
 entregasR.get(
   "/tareas/:tareaId/entregas",
   requireRole(["PROFESOR", "ADMIN"]),
@@ -166,7 +156,7 @@ entregasR.get(
         ...d.data(),
       }));
 
-      // IDs únicos de alumnos
+
       const alumnoIds = [
         ...new Set(
           entregasRaw
@@ -222,11 +212,7 @@ entregasR.get(
   }
 );
 
-/**
- * PUT /api/entregas/:id/calificar
- * Docente / admin asigna nota 0–100 a una entrega.
- * Body: { nota: number (0-100), comentario?: string }
- */
+
 entregasR.put(
   "/entregas/:id/calificar",
   requireRole(["PROFESOR", "ADMIN"]),
@@ -256,7 +242,6 @@ entregasR.put(
       const uid = req.user?.uid || req.user?.id;
       const rol = req.user?.rol || req.user?.role;
 
-      // (Opcional) Verificar que el profesor sea dueño de la tarea
       if (tareaId && rol !== "ADMIN") {
         try {
           const tareaSnap = await firestoreAdmin
@@ -280,7 +265,7 @@ entregasR.put(
 
       const patch = {
         nota,
-        comentario: comentario.trim() || null,
+        comentario: comentario.trim() || null, 
         calificadaEn: new Date(),
         calificadaPor: uid,
       };
@@ -294,3 +279,5 @@ entregasR.put(
     }
   }
 );
+
+export default entregasR;

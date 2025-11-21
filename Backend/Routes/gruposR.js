@@ -1,11 +1,10 @@
-// Backend/Routes/gruposR.js
 import { Router } from "express";
 import { firestoreAdmin } from "../utils/db.js";
 import { requireRole } from "../middlewares/requireRole.js";
 
 export const gruposR = Router();
 
-// Helper: solo admin
+
 function ensureAdmin(req, res, next) {
   const rol = req.user?.rol || req.user?.role;
   if (rol !== "ADMIN") {
@@ -14,10 +13,7 @@ function ensureAdmin(req, res, next) {
   next();
 }
 
-// ───────────────────────────────
-// GET /api/grupos
-// Lista todos los grupos (ADMIN)
-// ───────────────────────────────
+
 gruposR.get("/grupos", ensureAdmin, async (_req, res) => {
   try {
     const snap = await firestoreAdmin.collection("grupos").get();
@@ -47,11 +43,7 @@ gruposR.get("/grupos", ensureAdmin, async (_req, res) => {
   }
 });
 
-// ───────────────────────────────
-// POST /api/grupos
-// Crea un grupo nuevo
-// Body: { cursoId, nombre, profesorId }
-// ───────────────────────────────
+
 gruposR.post("/grupos", ensureAdmin, async (req, res) => {
   try {
     const { cursoId, nombre, profesorId } = req.body || {};
@@ -62,7 +54,7 @@ gruposR.post("/grupos", ensureAdmin, async (req, res) => {
         .json({ error: "cursoId, nombre y profesorId son obligatorios" });
     }
 
-    // Leer curso para guardar también nombre del curso
+
     let cursoNombre = null;
     try {
       const cursoSnap = await firestoreAdmin
@@ -77,7 +69,7 @@ gruposR.post("/grupos", ensureAdmin, async (req, res) => {
       console.warn("WARN leyendo curso en POST /grupos:", e?.message || e);
     }
 
-    // Leer profesor para guardar nombre + email
+
     let profesorNombre = null;
     let profesorEmail = null;
     try {
@@ -124,10 +116,7 @@ gruposR.post("/grupos", ensureAdmin, async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// POST /api/grupos/:id/matriculas
-// (si lo usas para meter alumnos a mano)
-// ───────────────────────────────
+
 gruposR.post("/grupos/:id/matriculas", ensureAdmin, async (req, res) => {
   try {
     const grupoId = req.params.id;
@@ -157,10 +146,6 @@ gruposR.post("/grupos/:id/matriculas", ensureAdmin, async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// GET /api/profes
-// Lista de profesores (ADMIN)
-// ───────────────────────────────
 gruposR.get("/profes", ensureAdmin, async (_req, res) => {
   try {
     const snap = await firestoreAdmin
@@ -189,10 +174,6 @@ gruposR.get("/profes", ensureAdmin, async (_req, res) => {
   }
 });
 
-// ───────────────────────────────
-// PUT /api/grupos/:id
-// Actualiza horario u otros campos (ADMIN)
-// ───────────────────────────────
 gruposR.put("/grupos/:id", ensureAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -212,11 +193,7 @@ gruposR.put("/grupos/:id", ensureAdmin, async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// GET /api/grupos/:id/alumnos
-// Devuelve alumnos (no solo ids) de un grupo
-// (PROFESOR o ADMIN)
-// ───────────────────────────────
+
 gruposR.get(
   "/grupos/:id/alumnos",
   requireRole(["ADMIN", "PROFESOR"]),
@@ -224,7 +201,6 @@ gruposR.get(
     try {
       const grupoId = req.params.id;
 
-      // 1) Matrículas activas del grupo
       const snap = await firestoreAdmin
         .collection("matriculas")
         .where("grupoId", "==", grupoId)
@@ -243,7 +219,6 @@ gruposR.get(
         ),
       ];
 
-      // 2) Traer info de los alumnos
       const alumnos = [];
       for (const aid of alumnoIds) {
         const uRef = firestoreAdmin.collection("usuarios").doc(aid);
@@ -271,10 +246,6 @@ gruposR.get(
   }
 );
 
-// ───────────────────────────────
-// GET /api/profesores/:profesorId/grupos
-// (opcional ?cursoId=...)
-// ───────────────────────────────
 gruposR.get(
   "/profesores/:profesorId/grupos",
   requireRole(["ADMIN", "PROFESOR"]),

@@ -1,4 +1,4 @@
-// Backend/index.js
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -26,7 +26,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// ---------- Anti-rebote de tokens (5s) ----------
+
 const seenTokens = new Map();
 const TTL_MS = 5000;
 function isDuplicateToken(idToken) {
@@ -40,25 +40,25 @@ function isDuplicateToken(idToken) {
   return false;
 }
 
-// ---------- Bootstrap de admin por ENV ----------
+
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || '').toLowerCase();
 
-// ---------- /auth/session ----------
+
 app.post('/auth/session', async (req, res) => {
-  const rid = Math.random().toString(36).slice(2, 8); // id del request
+  const rid = Math.random().toString(36).slice(2, 8); 
   try {
     console.log('→ /auth/session rid=', rid, 'Node:', process.version);
     const { idToken } = req.body;
     if (!idToken) return res.status(400).json({ error: 'Falta idToken' });
 
-    // --- DEBUG payload
+
     const parts = idToken.split('.');
     if (parts.length !== 3) return res.status(400).json({ error: 'idToken inválido' });
     const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
     console.log('   aud=', payload.aud, 'email=', payload.email);
     console.log('   now=', Math.floor(Date.now()/1000), 'iat=', payload.iat, 'exp=', payload.exp);
 
-    // --- VERIFY
+
     let decoded;
     try {
       decoded = await authAdmin.verifyIdToken(idToken);
@@ -71,7 +71,7 @@ app.post('/auth/session', async (req, res) => {
     const uid = decoded.uid;
     const email = (decoded.email || '').toLowerCase();
 
-    // --- FIRESTORE GET
+
     let snap;
     try {
       const ref = firestoreAdmin.collection('usuarios').doc(uid);
@@ -82,7 +82,7 @@ app.post('/auth/session', async (req, res) => {
       return res.status(500).json({ error: 'Error leyendo usuario' });
     }
 
-    // --- CREAR SI NO EXISTE
+
     if (!snap.exists) {
       const base = {
         email,
@@ -100,7 +100,7 @@ app.post('/auth/session', async (req, res) => {
       return res.status(403).json({ ok: false, error: 'Cuenta creada. Pendiente de aprobación.' });
     }
 
-    // --- VALIDAR ESTADO
+
     const data = snap.data() || {};
     console.log('   user estado=', data.estado, 'rol=', data.rol);
     if (data.estado === 'pendiente') {
@@ -110,7 +110,7 @@ app.post('/auth/session', async (req, res) => {
       return res.status(403).json({ ok: false, error: 'Cuenta rechazada.' });
     }
 
-    // --- OK
+
     console.log('   login OK rid=', rid, 'rol=', data.rol || 'USER');
     return res.json({ ok: true, uid, rol: data.rol || 'USER' });
 
@@ -121,9 +121,7 @@ app.post('/auth/session', async (req, res) => {
   }
 });
 
-// ───────────────────────────────
-// Rutas protegidas /api
-// ───────────────────────────────
+
 app.use('/api', requireAuth, userRouter);
 app.use('/api', requireAuth, gruposR); 
 app.use('/api/cursos', cursosR);
@@ -132,7 +130,7 @@ app.use("/api", materialesR);
 app.use("/api", tareasR);
 app.use("/api", entregasR);
 
-// Healthcheck opcional
+
 app.get('/healthz', (_req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 3000;

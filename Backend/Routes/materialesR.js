@@ -1,4 +1,3 @@
-// Backend/Routes/materialesR.js
 import { Router } from "express";
 import multer from "multer";
 import { firestoreAdmin } from "../utils/db.js";
@@ -7,27 +6,16 @@ import { requireRole } from "../middlewares/requireRole.js";
 
 export const materialesR = Router();
 
-// Multer: guardamos archivos en memoria (buffer)
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 const BUCKET = process.env.SUPABASE_BUCKET || "materiales";
 
-/**
- * POST /api/materiales
- * Body (multipart/form-data):
- *  - titulo (string, required)
- *  - descripcion (string, optional)
- *  - cursoId (string, optional pero recomendado)
- *  - grupoId (string, optional)
- *  - enlace (string, optional)
- *  - archivo (file, optional)
- *
- * Reglas: titulo obligatorio y (archivo || enlace) obligatorio
- */
+
 materialesR.post(
   "/materiales",
-  requireRole(["PROFESOR"]), // solo docentes publican
-  upload.single("archivo"),  // campo "archivo" en el form
+  requireRole(["PROFESOR"]),
+  upload.single("archivo"),  
   async (req, res) => {
     try {
       const uid = req.user?.uid || req.user?.id;
@@ -39,7 +27,7 @@ materialesR.post(
         enlace = "",
       } = req.body || {};
 
-      const archivo = req.file; // puede ser undefined
+      const archivo = req.file; 
 
       if (!titulo || !titulo.trim()) {
         return res.status(400).json({ error: "El título es obligatorio." });
@@ -54,14 +42,12 @@ materialesR.post(
       let archivoUrl = null;
       let archivoNombre = null;
       let archivoTipo = null;
-      let archivoPath = null; // para poder borrarlo luego
+      let archivoPath = null; 
 
-      // ── Subir archivo a Supabase si viene ─────────────────
       if (archivo) {
         archivoNombre = archivo.originalname;
         archivoTipo = archivo.mimetype || "application/octet-stream";
 
-        // ruta dentro del bucket: cursoId/grupoId/timestamp_nombre
         const ts = Date.now();
         const safeNombre = archivoNombre.replace(/\s+/g, "_");
         archivoPath = `${
@@ -82,7 +68,6 @@ materialesR.post(
             .json({ error: "No se pudo subir el archivo." });
         }
 
-        // url pública
         const { data: publicData } = supabase.storage
           .from(BUCKET)
           .getPublicUrl(data.path);
@@ -90,7 +75,7 @@ materialesR.post(
         archivoUrl = publicData.publicUrl;
       }
 
-      // ── Guardar metadata en Firestore ─────────────────────
+
       const now = new Date();
 
       const docData = {
@@ -102,7 +87,7 @@ materialesR.post(
         archivoUrl,
         archivoNombre,
         archivoTipo,
-        archivoPath, // para poder borrar el archivo del bucket
+        archivoPath, 
         profesorId: uid,
         createdAt: now,
         updatedAt: now,
@@ -118,14 +103,7 @@ materialesR.post(
   }
 );
 
-/**
- * GET /api/materiales
- * Query:
- *  - cursoId (optional)
- *  - grupoId (optional)
- *
- * Lista filtrada por curso y/o grupo.
- */
+
 materialesR.get(
   "/materiales",
   requireRole(["ADMIN", "PROFESOR", "ESTUDIANTE"]),
@@ -142,7 +120,6 @@ materialesR.get(
         ref = ref.where("cursoId", "==", cursoId);
       }
 
-      // SIN orderBy en Firestore para evitar problemas de índices compuestos.
       const snap = await ref.get();
 
       const materiales = snap.docs.map((d) => {
@@ -157,7 +134,7 @@ materialesR.get(
             const secs = ts._seconds ?? ts.seconds;
             createdAt = new Date(secs * 1000).toISOString();
           } else {
-            createdAt = ts; // string o number
+            createdAt = ts; 
           }
         }
 
@@ -176,7 +153,6 @@ materialesR.get(
         };
       });
 
-      // Ordenamos del más nuevo al más viejo en memoria
       materiales.sort(
         (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
       );
@@ -191,7 +167,7 @@ materialesR.get(
   }
 );
 
-// PUT /api/materiales/:id
+
 materialesR.put(
   "/materiales/:id",
   requireRole(["PROFESOR", "ADMIN"]),
@@ -209,7 +185,7 @@ materialesR.put(
       const data = snap.data() || {};
       const uid = req.user?.uid;
 
-      // Solo el dueño o un admin pueden editar
+
       const rol = req.user?.rol || req.user?.role;
       if (rol !== "ADMIN" && data.profesorId && data.profesorId !== uid) {
         return res.status(403).json({ error: "No autorizado" });
@@ -232,7 +208,7 @@ materialesR.put(
   }
 );
 
-// DELETE /api/materiales/:id
+
 materialesR.delete(
   "/materiales/:id",
   requireRole(["PROFESOR", "ADMIN"]),
